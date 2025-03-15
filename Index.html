@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Matéria</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            background-color: #f4f4f4;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            text-align: left;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        select, input, textarea {
+            width: 100%;
+            margin: 5px 0 15px 0;
+            padding: 8px;
+            display: block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 50px;
+        }
+
+        button, a {
+            display: inline-block;
+            margin: 10px 5px;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover, a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Registro de Matéria</h1>
+        <form action="/process" method="post">
+            <label for="canal">Canal</label>
+            <select name="canal" id="canal" required>
+                <option value="Globo">Globo</option>
+                <option value="Record">Record</option>
+            </select>
+            
+            <label for="jornal">Jornal</label>
+            <select name="jornal" id="jornal" required>
+                <option value="Balanço Geral">Balanço Geral</option>
+                <option value="Bom Dia Inter">Bom Dia Inter</option>
+                <option value="Inter TV Rural">Inter TV Rural</option>
+                <option value="RJ Record">RJ Record</option>
+                <option value="RJ TV 1">RJ TV 1</option>
+                <option value="RJ TV 2">RJ TV 2</option>
+            </select>
+            
+            <label for="tema">Tema</label>
+            <select name="tema" id="tema" required>
+                <option value="Agricultura">Agricultura</option>
+                <option value="Codemca">Codemca</option>
+                <option value="Cultura">Cultura</option>
+                <option value="Defesa Civil">Defesa Civil</option>
+                <option value="Economia">Economia</option>
+                <option value="Educação">Educação</option>
+                <option value="Governo">Governo</option>
+                <option value="Iluminação">Iluminação</option>
+                <option value="Limpeza Pública">Limpeza Pública</option>
+                <option value="Obras">Obras</option>
+                <option value="Ordem Pública">Ordem Pública</option>
+                <option value="Saúde">Saúde</option>
+                <option value="Social">Social</option>
+                <option value="Transporte">Transporte</option>
+                <option value="Turismo">Turismo</option>
+            </select>
+            
+            <label for="datahora">Data e Hora</label>
+            <input type="datetime-local" name="datahora" id="datahora" required>
+            
+            <label for="teor">Teor</label>
+            <select name="teor" id="teor" required>
+                <option value="Negativo">Negativo</option>
+                <option value="Neutro">Neutro</option>
+                <option value="Positivo">Positivo</option>
+            </select>
+            
+            <label for="texto">Texto da Matéria</label>
+            <textarea name="texto" id="texto" rows="5" required></textarea>
+            
+            <button type="submit">Gerar Texto Mensagem</button>
+        </form>
+        <a href="/dashboard_mensal" target="_blank">Gerar Dashboard Mensal</a>
+        <a href="/gerar_xml_mensal" target="_blank">Gerar Texto XML Mensal</a>
+    </div>
+</body>
+</html>
