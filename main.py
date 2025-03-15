@@ -5,7 +5,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 from fpdf import FPDF
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder=os.path.dirname(__file__))
 EXCEL_FILE = "dados.xlsx"
 PDF_FILE = "dashboard.pdf"
 
