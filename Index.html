@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Matéria</title>
+    <title>Registro de Matérias</title>
     <style>
         * {
             margin: 0;
@@ -19,7 +19,6 @@
             min-height: 100vh;
             text-align: center;
             background-color: #f4f4f4;
-            overflow-y: auto;
             padding: 20px;
         }
 
@@ -43,9 +42,9 @@
             margin-top: 10px;
         }
 
-        select, input, textarea {
+        select, input, textarea, button {
             width: 100%;
-            margin: 5px 0 15px 0;
+            margin: 10px 0;
             padding: 8px;
             display: block;
             border: 1px solid #ccc;
@@ -57,35 +56,85 @@
             min-height: 50px;
         }
 
-        button, a {
-            display: inline-block;
-            margin: 10px 5px;
-            padding: 10px 20px;
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .button-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        button {
             background-color: #007BFF;
             color: white;
-            text-decoration: none;
             border: none;
             cursor: pointer;
             border-radius: 5px;
+            flex: 1;
         }
 
-        button:hover, a:hover {
+        button:hover {
             background-color: #0056b3;
         }
+
+        #add-data {
+            background-color: #28a745;
+        }
+
+        #add-data:hover {
+            background-color: #218838;
+        }
     </style>
+    <script>
+        function enviarDados(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(document.getElementById('data-form'));
+            
+            fetch('/process', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                document.getElementById('data-form').reset();
+            })
+            .catch(error => console.error('Erro:', error));
+        }
+
+        function gerarDashboard() {
+            fetch('/generate_dashboard')
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'dashboard.pdf';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            })
+            .catch(error => console.error('Erro ao gerar dashboard:', error));
+        }
+    </script>
 </head>
 <body>
     <div class="container">
-        <h1>Registro de Matéria</h1>
-        <form action="/process" method="post">
-            <label for="canal">Canal</label>
-            <select name="canal" id="canal" required>
+        <h1>Registro de Matérias</h1>
+        <form id="data-form" onsubmit="enviarDados(event)">
+            <label for="canal">Canal:</label>
+            <select name="canal" required>
                 <option value="Globo">Globo</option>
                 <option value="Record">Record</option>
             </select>
-            
-            <label for="jornal">Jornal</label>
-            <select name="jornal" id="jornal" required>
+
+            <label for="jornal">Jornal:</label>
+            <select name="jornal" required>
                 <option value="Balanço Geral">Balanço Geral</option>
                 <option value="Bom Dia Inter">Bom Dia Inter</option>
                 <option value="Inter TV Rural">Inter TV Rural</option>
@@ -93,9 +142,9 @@
                 <option value="RJ TV 1">RJ TV 1</option>
                 <option value="RJ TV 2">RJ TV 2</option>
             </select>
-            
-            <label for="tema">Tema</label>
-            <select name="tema" id="tema" required>
+
+            <label for="tema">Tema:</label>
+            <select name="tema" required>
                 <option value="Agricultura">Agricultura</option>
                 <option value="Codemca">Codemca</option>
                 <option value="Cultura">Cultura</option>
@@ -112,24 +161,29 @@
                 <option value="Transporte">Transporte</option>
                 <option value="Turismo">Turismo</option>
             </select>
-            
-            <label for="datahora">Data e Hora</label>
-            <input type="datetime-local" name="datahora" id="datahora" required>
-            
-            <label for="teor">Teor</label>
-            <select name="teor" id="teor" required>
+
+            <label for="datahora">Data e Hora:</label>
+            <input type="datetime-local" name="datahora" required>
+
+            <label for="teor">Teor:</label>
+            <select name="teor" required>
                 <option value="Negativo">Negativo</option>
                 <option value="Neutro">Neutro</option>
                 <option value="Positivo">Positivo</option>
             </select>
-            
-            <label for="texto">Texto da Matéria</label>
-            <textarea name="texto" id="texto" rows="5" required></textarea>
-            
-            <button type="submit">Gerar Texto Mensagem</button>
+
+            <label for="texto">Texto da Matéria:</label>
+            <textarea name="texto" rows="3" required></textarea>
+
+            <div class="button-container">
+                <button id="add-data" type="submit">Adicionar Dados</button>
+                <div class="button-row">
+                    <button type="button">Gerar Texto Mensagem</button>
+                    <button type="button" onclick="gerarDashboard()">Gerar Dashboard Mensal</button>
+                    <button type="button">Gerar Texto XML Mensal</button>
+                </div>
+            </div>
         </form>
-        <a href="/dashboard_mensal" target="_blank">Gerar Dashboard Mensal</a>
-        <a href="/gerar_xml_mensal" target="_blank">Gerar Texto XML Mensal</a>
     </div>
 </body>
 </html>

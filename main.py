@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, jsonify
 import pandas as pd
 import os
 from datetime import datetime
@@ -40,7 +40,7 @@ def process():
     df = pd.concat([df, novo_dado], ignore_index=True)
     df.to_excel(EXCEL_FILE, index=False)
     
-    return "Dados salvos com sucesso!"
+    return jsonify({"message": "Dados adicionados com sucesso!"})
 
 @app.route('/download_excel')
 def download_excel():
