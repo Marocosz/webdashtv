@@ -23,7 +23,7 @@ def verificar_arquivo():
 # Rota para a página inicial, onde o usuário pode preencher o formulário
 @app.route('/')
 def index():
-    return render_template("Index.html")  # Renderiza o arquivo HTML (Index.html) para o usuário
+    return render_template("index.html")  # Renderiza o arquivo HTML (Index.html) para o usuário
 
 # Rota para processar os dados enviados pelo formulário
 @app.route('/process', methods=['POST'])
@@ -56,6 +56,36 @@ def process():
 def download_excel():
     # Retorna o arquivo Excel como anexo para o usuário baixar
     return send_file(EXCEL_FILE, as_attachment=True)
+
+@app.route('/gerar_texto_mensagem', methods=['POST'])
+def gerar_texto_mensagem():
+    verificar_arquivo()
+    df = pd.read_excel(EXCEL_FILE)
+
+    if df.empty:
+        return jsonify({"message": "Nenhum dado disponível para gerar o texto."})
+    
+    # Filtra os dados do dia atual
+    data_atual = datetime.now().strftime('%Y-%m-%d')
+    df['DataHora'] = pd.to_datetime(df['DataHora'])
+    df_dia = df[df['DataHora'].dt.strftime('%Y-%m-%d') == data_atual]
+
+    if df_dia.empty:
+        return jsonify({"message": "Nenhum dado para o dia de hoje."})
+    
+    # Gerando o texto
+    texto_mensagem = ""
+    for index, row in df_dia.iterrows():
+        hora = row['DataHora'].strftime('%H:%M')
+        teor = row['Teor']
+        texto = row['Texto']
+        
+        # Formatação do texto
+        texto_mensagem += f"⏰{hora}\n"
+        texto_mensagem += f"{'🔴' if teor == 'Negativo' else '⚪' if teor == 'Neutro' else '🟢'}{teor}\n"
+        texto_mensagem += f"ℹ️{texto}\n\n"
+    
+    return jsonify({"texto": texto_mensagem})
 
 # Rota para gerar e baixar o dashboard em PDF
 @app.route('/gerar_dashboard_pdf')

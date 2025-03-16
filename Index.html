@@ -132,6 +132,28 @@
             .catch(error => console.error('Erro:', error)); // Exibe erros no console
         }
 
+        // Função que gera o texto da mensagem ao clicar no botão
+        function gerarTextoMensagem() {
+            fetch('/gerar_texto_mensagem', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.texto) {
+                    // Criar nova página e exibir o texto gerado
+                    const novaPagina = window.open('', '_blank');
+                    novaPagina.document.write('<html><head><title>Clipping de Matérias</title></head><body>');
+                    novaPagina.document.write('<h1>Clipping | ' + new Date().toLocaleDateString() + ' – Noite</h1>');
+                    novaPagina.document.write('<pre>' + data.texto + '</pre>');
+                    novaPagina.document.write('</body></html>');
+                } else {
+                    alert('Erro: ' + data.message);
+                }
+            })
+            .catch(error => console.error('Erro ao gerar texto:', error));
+        }
+
+
         // Função que gera o dashboard
         function gerarDashboard() {
             fetch('/generate_dashboard') // Envia uma requisição para gerar o dashboard
@@ -219,7 +241,7 @@
                 
                 <!-- Linha com botões adicionais -->
                 <div class="button-row">
-                    <button type="button">Gerar Texto Mensagem</button>
+                    <button type="button" onclick="gerarTextoMensagem()">Gerar Texto Mensagem</button>
                     <button type="button" onclick="gerarDashboard()">Gerar Dashboard Mensal</button>
                     <button type="button">Gerar Texto XML Mensal</button>
                 </div>
