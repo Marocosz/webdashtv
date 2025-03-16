@@ -1,138 +1,171 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <!-- Definindo a codificação de caracteres para UTF-8 -->
     <meta charset="UTF-8">
+    
+    <!-- Tornando a página responsiva, ajustando o conteúdo à largura da tela -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Definindo o título da página que aparecerá na aba do navegador -->
     <title>Registro de Matérias</title>
+
+    <!-- Estilos CSS -->
     <style>
+        /* Resetando margens e preenchimentos padrão de todos os elementos */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        /* Estilo geral para o corpo da página */
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            text-align: center;
-            background-color: #f4f4f4;
-            padding: 20px;
+            font-family: Arial, sans-serif; /* Definindo a fonte da página */
+            display: flex; /* Usando o Flexbox para centralizar o conteúdo */
+            justify-content: center; /* Alinhando o conteúdo horizontalmente */
+            align-items: center; /* Alinhando o conteúdo verticalmente */
+            min-height: 100vh; /* Garantindo que o conteúdo ocupe ao menos toda a altura da tela */
+            text-align: center; /* Centralizando o texto */
+            background-color: #f4f4f4; /* Cor de fundo da página */
+            padding: 20px; /* Adicionando espaço nas bordas da tela */
         }
 
+        /* Estilo do contêiner que envolve o formulário */
         .container {
-            width: 100%;
-            max-width: 600px;
-            padding: 20px;
-            background-color: white;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
+            width: 100%; /* A largura do contêiner ocupa toda a largura disponível */
+            max-width: 600px; /* Largura máxima do contêiner */
+            padding: 20px; /* Espaçamento interno */
+            background-color: white; /* Cor de fundo branca */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave ao redor do contêiner */
+            border-radius: 8px; /* Bordas arredondadas */
         }
 
+        /* Estilo do título principal */
         h1 {
-            margin-bottom: 20px;
+            margin-bottom: 20px; /* Margem inferior para separar do conteúdo abaixo */
         }
 
+        /* Estilo das labels (rótulos) dos campos */
         label {
-            display: block;
-            text-align: left;
-            font-weight: bold;
-            margin-top: 10px;
+            display: block; /* Faz a label ocupar toda a largura */
+            text-align: left; /* Alinhamento do texto à esquerda */
+            font-weight: bold; /* Texto em negrito */
+            margin-top: 10px; /* Espaço superior entre a label e o conteúdo acima */
         }
 
+        /* Estilo dos campos de input, select, textarea e botão */
         select, input, textarea, button {
-            width: 100%;
-            margin: 10px 0;
-            padding: 8px;
-            display: block;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            width: 100%; /* Largura total disponível */
+            margin: 10px 0; /* Margem superior e inferior */
+            padding: 8px; /* Preenchimento interno */
+            display: block; /* Exibindo como bloco, ocupando toda a largura */
+            border: 1px solid #ccc; /* Borda cinza clara */
+            border-radius: 4px; /* Bordas arredondadas */
         }
 
+        /* Estilo específico para o campo de texto (textarea) */
         textarea {
-            resize: vertical;
-            min-height: 50px;
+            resize: vertical; /* Permite redimensionar apenas verticalmente */
+            min-height: 50px; /* Altura mínima do campo de texto */
         }
 
+        /* Estilo para o contêiner dos botões */
         .button-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            display: flex; /* Usando flexbox para alinhar os botões */
+            flex-direction: column; /* Organizando os botões em uma coluna */
+            gap: 10px; /* Espaço entre os botões */
         }
 
+        /* Estilo para a linha de botões */
         .button-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
+            display: flex; /* Usando flexbox para alinhar os botões na mesma linha */
+            justify-content: space-between; /* Distribuindo os botões com espaço entre eles */
+            gap: 10px; /* Espaço entre os botões */
         }
 
+        /* Estilo dos botões */
         button {
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            flex: 1;
+            background-color: #007BFF; /* Cor de fundo azul */
+            color: white; /* Texto branco */
+            border: none; /* Removendo bordas */
+            cursor: pointer; /* Aparece como uma mão quando o mouse passa sobre o botão */
+            border-radius: 5px; /* Bordas arredondadas */
+            flex: 1; /* Faz o botão ocupar o máximo de espaço possível */
         }
 
+        /* Efeito de hover (quando o mouse passa sobre o botão) */
         button:hover {
-            background-color: #0056b3;
+            background-color: #0056b3; /* Escurece a cor de fundo */
         }
 
+        /* Estilo específico para o botão de adicionar dados */
         #add-data {
-            background-color: #28a745;
+            background-color: #28a745; /* Cor de fundo verde */
         }
 
+        /* Efeito de hover para o botão de adicionar dados */
         #add-data:hover {
-            background-color: #218838;
+            background-color: #218838; /* Escurece a cor de fundo */
         }
     </style>
+
+    <!-- Scripts JavaScript -->
     <script>
+        // Função que envia os dados do formulário
         function enviarDados(event) {
-            event.preventDefault();
-            
+            event.preventDefault(); // Impede o envio padrão do formulário
+
+            // Coletando os dados do formulário
             const formData = new FormData(document.getElementById('data-form'));
-            
+
+            // Enviando os dados para o servidor
             fetch('/process', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => response.json()) // Converte a resposta para JSON
             .then(data => {
-                alert(data.message);
-                document.getElementById('data-form').reset();
+                alert(data.message); // Exibe a mensagem recebida do servidor
+                document.getElementById('data-form').reset(); // Reseta o formulário após o envio
             })
-            .catch(error => console.error('Erro:', error));
+            .catch(error => console.error('Erro:', error)); // Exibe erros no console
         }
 
+        // Função que gera o dashboard
         function gerarDashboard() {
-            fetch('/generate_dashboard')
-            .then(response => response.blob())
+            fetch('/generate_dashboard') // Envia uma requisição para gerar o dashboard
+            .then(response => response.blob()) // Converte a resposta para um blob (arquivo)
             .then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'dashboard.pdf';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
+                const url = window.URL.createObjectURL(blob); // Cria uma URL temporária para o arquivo
+                const a = document.createElement('a'); // Cria um elemento <a> para fazer o download
+                a.href = url; // Define o link de download
+                a.download = 'dashboard.pdf'; // Define o nome do arquivo a ser baixado
+                document.body.appendChild(a); // Adiciona o link ao corpo da página
+                a.click(); // Simula o clique para iniciar o download
+                a.remove(); // Remove o link da página
             })
-            .catch(error => console.error('Erro ao gerar dashboard:', error));
+            .catch(error => console.error('Erro ao gerar dashboard:', error)); // Exibe erros no console
         }
     </script>
 </head>
+
 <body>
     <div class="container">
+        <!-- Título da página -->
         <h1>Registro de Matérias</h1>
+
+        <!-- Formulário para registrar as matérias -->
         <form id="data-form" onsubmit="enviarDados(event)">
+            
+            <!-- Campo para selecionar o canal -->
             <label for="canal">Canal:</label>
             <select name="canal" required>
                 <option value="Globo">Globo</option>
                 <option value="Record">Record</option>
             </select>
 
+            <!-- Campo para selecionar o jornal -->
             <label for="jornal">Jornal:</label>
             <select name="jornal" required>
                 <option value="Balanço Geral">Balanço Geral</option>
@@ -143,6 +176,7 @@
                 <option value="RJ TV 2">RJ TV 2</option>
             </select>
 
+            <!-- Campo para selecionar o tema -->
             <label for="tema">Tema:</label>
             <select name="tema" required>
                 <option value="Agricultura">Agricultura</option>
@@ -162,9 +196,11 @@
                 <option value="Turismo">Turismo</option>
             </select>
 
+            <!-- Campo para inserir a data e hora -->
             <label for="datahora">Data e Hora:</label>
             <input type="datetime-local" name="datahora" required>
 
+            <!-- Campo para selecionar o teor da matéria -->
             <label for="teor">Teor:</label>
             <select name="teor" required>
                 <option value="Negativo">Negativo</option>
@@ -172,11 +208,16 @@
                 <option value="Positivo">Positivo</option>
             </select>
 
+            <!-- Campo para inserir o texto da matéria -->
             <label for="texto">Texto da Matéria:</label>
             <textarea name="texto" rows="3" required></textarea>
 
+            <!-- Contêiner para os botões -->
             <div class="button-container">
+                <!-- Botão para adicionar os dados -->
                 <button id="add-data" type="submit">Adicionar Dados</button>
+                
+                <!-- Linha com botões adicionais -->
                 <div class="button-row">
                     <button type="button">Gerar Texto Mensagem</button>
                     <button type="button" onclick="gerarDashboard()">Gerar Dashboard Mensal</button>
