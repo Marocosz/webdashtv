@@ -52,10 +52,9 @@ def process():
     return jsonify({"message": "Dados adicionados com sucesso!"})
 
 # Rota para fazer o download do arquivo Excel
-@app.route('/download_excel')
+@app.route('/baixar_excel')
 def download_excel():
-    # Retorna o arquivo Excel como anexo para o usuário baixar
-    return send_file(EXCEL_FILE, as_attachment=True)
+    return send_file(EXCEL_FILE, as_attachment=True, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", download_name="dados.xlsx")
 
 @app.route('/gerar_texto_mensagem', methods=['POST'])
 def gerar_texto_mensagem():

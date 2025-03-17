@@ -168,6 +168,23 @@
             })
             .catch(error => console.error('Erro ao gerar dashboard:', error)); // Exibe erros no console
         }
+
+        // Função para baixar excel
+        function baixarExcel() {
+            fetch('/baixar_excel') // Envia uma requisição para baixar o arquivo Excel
+            .then(response => response.blob()) // Converte a resposta para um blob (arquivo)
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob); // Cria uma URL temporária
+                const a = document.createElement('a'); // Cria um elemento <a>
+                a.href = url;
+                a.download = 'dados.xlsx'; // Define o nome do arquivo
+                document.body.appendChild(a);
+                a.click(); // Simula o clique para baixar
+                a.remove(); // Remove o link
+            })
+            .catch(error => console.error('Erro ao baixar Excel:', error));
+        }
+
     </script>
 </head>
 
@@ -179,22 +196,16 @@
         <!-- Formulário para registrar as matérias -->
         <form id="data-form" onsubmit="enviarDados(event)">
             
-            <!-- Campo para selecionar o canal -->
-            <label for="canal">Canal:</label>
-            <select name="canal" required>
-                <option value="Globo">Globo</option>
-                <option value="Record">Record</option>
+            <!-- Componente de seleção de canal -->
+            <select id="canal" onchange="atualizarJornais()">
+                <option value="globo">Globo</option>
+                <option value="record">Record</option>
             </select>
 
             <!-- Campo para selecionar o jornal -->
             <label for="jornal">Jornal:</label>
             <select name="jornal" required>
-                <option value="Balanço Geral">Balanço Geral</option>
-                <option value="Bom Dia Inter">Bom Dia Inter</option>
-                <option value="Inter TV Rural">Inter TV Rural</option>
-                <option value="RJ Record">RJ Record</option>
-                <option value="RJ TV 1">RJ TV 1</option>
-                <option value="RJ TV 2">RJ TV 2</option>
+                <option value="">Selecione um jornal</option>                
             </select>
 
             <!-- Campo para selecionar o tema -->
@@ -243,6 +254,7 @@
                     <button type="button" onclick="gerarTextoMensagem()">Gerar Texto Mensagem</button>
                     <button type="button" onclick="gerarDashboard()">Gerar Dashboard Mensal</button>
                     <button type="button">Gerar Texto XML Mensal</button>
+                    <button type="button" onclick="baixarExcel()">Baixar Excel</button>
                 </div>
             </div>
         </form>
