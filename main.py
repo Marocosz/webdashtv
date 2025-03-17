@@ -9,6 +9,13 @@ from fpdf import FPDF
 # Inicializando o aplicativo Flask
 app = Flask(__name__, template_folder=os.path.dirname(__file__))
 
+# Dicionário com os canais e seus respectivos jornais
+jornais = {
+    "Globo": ["Inter TV Rural", "Bom Dia Rio", "Bom Dia Brasil", "RJ TV 1", "RJ TV 2"],
+    "Record": ["Balanço Geral", "RJ No Ar TV Record", "RJ Record"]
+}
+
+
 # Definindo os nomes dos arquivos que serão utilizados
 EXCEL_FILE = "dados.xlsx"
 PDF_FILE = "dashboard.pdf"
@@ -136,6 +143,11 @@ def gerar_dashboard_pdf():
     
     # Retorna o arquivo PDF para o usuário baixar
     return send_file(PDF_FILE, as_attachment=True)
+
+@app.route('/get_jornais', methods=['POST'])
+def get_jornais():
+    canal = request.json.get("canal")
+    return jsonify(jornais.get(canal, []))
 
 # Inicia o servidor Flask no modo de depuração
 if __name__ == '__main__':
