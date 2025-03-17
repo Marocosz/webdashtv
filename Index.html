@@ -143,7 +143,6 @@
                     // Criar nova página e exibir o texto gerado
                     const novaPagina = window.open('', '_blank');
                     novaPagina.document.write('<html><head><title>Clipping de Matérias</title></head><body>');
-                    novaPagina.document.write('<h1>Clipping | ' + new Date().toLocaleDateString() + ' – Noite</h1>');
                     novaPagina.document.write('<pre>' + data.texto + '</pre>');
                     novaPagina.document.write('</body></html>');
                 } else {

@@ -65,26 +65,37 @@ def gerar_texto_mensagem():
     if df.empty:
         return jsonify({"message": "Nenhum dado disponível para gerar o texto."})
     
-    # Filtra os dados do dia atual
-    data_atual = datetime.now().strftime('%Y-%m-%d')
+    # Obtém a data atual no formato necessário
+    data_atual = datetime.now().strftime('%d-%m-%y')  # Formato: 14-03-25
     df['DataHora'] = pd.to_datetime(df['DataHora'])
-    df_dia = df[df['DataHora'].dt.strftime('%Y-%m-%d') == data_atual]
+    df_dia = df[df['DataHora'].dt.date == datetime.now().date()]  # Filtra registros do dia atual
 
     if df_dia.empty:
         return jsonify({"message": "Nenhum dado para o dia de hoje."})
+
+    # Criar estrutura do texto
+    texto_mensagem = f"*CLIPPING | {data_atual}*\n\n\n\n"
     
-    # Gerando o texto
-    texto_mensagem = ""
-    for index, row in df_dia.iterrows():
-        hora = row['DataHora'].strftime('%H:%M')
-        teor = row['Teor']
-        texto = row['Texto']
+    # Agrupar por Jornal
+    jornais = df_dia['Jornal'].unique()
+    for jornal in jornais:
+        texto_mensagem += f"*📺{jornal}*\n\n"
         
-        # Formatação do texto
-        texto_mensagem += f"⏰{hora}\n"
-        texto_mensagem += f"{'🔴' if teor == 'Negativo' else '⚪' if teor == 'Neutro' else '🟢'}{teor}\n"
-        texto_mensagem += f"ℹ️{texto}\n\n"
-    
+        df_jornal = df_dia[df_dia['Jornal'] == jornal]
+        for _, row in df_jornal.iterrows():
+            hora = row['DataHora'].strftime('%H:%M')
+            teor = row['Teor']
+            texto = row['Texto']
+            
+            # Ícone correspondente ao teor
+            icone_teor = "🔴" if teor.lower() == "negativa" else "⚪" if teor.lower() == "neutra" else "🟢"
+            
+            texto_mensagem += f"⏰*{hora}*\n"
+            texto_mensagem += f"*{icone_teor}{teor}*\n"
+            texto_mensagem += f"ℹ️{texto}\n\n"
+            
+        texto_mensagem += f"-----------------------------------\n\n"
+
     return jsonify({"texto": texto_mensagem})
 
 # Rota para gerar e baixar o dashboard em PDF
