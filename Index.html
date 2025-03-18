@@ -108,6 +108,17 @@
         #add-data:hover {
             background-color: #218838; /* Escurece a cor de fundo */
         }
+
+        .error {
+        border: 2px solid red;
+        background-color: #ffe6e6;
+    }
+
+        .error-message {
+            color: red;
+            font-size: 12px;
+            display: none;
+        }
     </style>
 
     <!-- Scripts JavaScript -->
@@ -187,11 +198,23 @@
 
         function updateJornais() {
             let canal = document.getElementById("canal").value;
+            let jornalSelect = document.getElementById("jornal");
+
+            // Limpa as opções anteriores e adiciona a opção padrão
+            jornalSelect.innerHTML = "<option value=''>Selecione um jornal</option>";
+            
+            if (!canal) {
+                alert("Por favor, selecione um canal antes de escolher um jornal.");
+                return;
+    }
+
             fetch('/get_jornais', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({canal: canal})
             })
+
+            
             .then(response => response.json())
             .then(data => {
                 let jornalSelect = document.getElementById("jornal");
@@ -205,6 +228,38 @@
             });
         }
 
+        function validarSelecao(event) {
+            let canal = document.getElementById("canal");
+            let jornal = document.getElementById("jornal");
+            let erroCanal = document.getElementById("erro-canal");
+            let erroJornal = document.getElementById("erro-jornal");
+            let erro = false;
+
+            if (!canal.value) {
+                canal.classList.add("error");
+                erroCanal.style.display = "block";
+                erro = true;
+            }
+
+            if (!jornal.value) {
+                jornal.classList.add("error");
+                erroJornal.style.display = "block";
+                erro = true;
+            }
+
+            if (erro) {
+                event.preventDefault(); // Impede o envio do formulário
+            }
+        }
+
+        function removerErro(id) {
+            let campo = document.getElementById(id);
+            let erroMsg = document.getElementById("erro-" + id);
+
+            campo.classList.remove("error");
+            erroMsg.style.display = "none";
+        }
+
     </script>
 </head>
 
@@ -213,23 +268,23 @@
         <!-- Título da página -->
         <h1>Registro de Matérias</h1>
 
-        <!-- Formulário para registrar as matérias -->
-        <form id="data-form" onsubmit="enviarDados(event)">
-            
+        <form id="data-form" onsubmit="validarSelecao(event); if (!event.defaultPrevented) enviarDados(event);">
             <label for="canal">Canal</label>
-            <select id="canal" name="canal" onchange="updateJornais()">
+            <select id="canal" name="canal" onchange="updateJornais(); removerErro('canal')">
                 <option value="">Selecione um canal</option>
                 <option value="Globo">Globo</option>
                 <option value="Record">Record</option>
             </select>
 
-            <!-- Componente de seleção de Jornal -->
+            <div id="erro-canal" class="error-message">Selecione um canal</div>
+        
             <label for="jornal">Jornal</label>
-            <select id="jornal" name="jornal">
+            <select id="jornal" name="jornal" onchange="removerErro('jornal')">
                 <option value="">Selecione um jornal</option>
             </select>
 
-            <!-- Campo para selecionar o tema -->
+            <div id="erro-jornal" class="error-message">Selecione um jornal</div>
+        
             <label for="tema">Tema</label>
             <select name="tema" required>
                 <option value="Agricultura">Agricultura</option>
@@ -248,24 +303,20 @@
                 <option value="Transporte">Transporte</option>
                 <option value="Turismo">Turismo</option>
             </select>
-
-            <!-- Campo para inserir a data e hora -->
+        
             <label for="datahora">Data e Hora</label>
             <input type="datetime-local" name="datahora" required>
-
-            <!-- Campo para selecionar o teor da matéria -->
+        
             <label for="teor">Teor</label>
             <select name="teor" required>
                 <option value="Negativo">Negativo</option>
                 <option value="Neutro">Neutro</option>
                 <option value="Positivo">Positivo</option>
             </select>
-
-            <!-- Campo para inserir o texto da matéria -->
+        
             <label for="texto">Texto da Matéria</label>
             <textarea name="texto" rows="3" required></textarea>
-
-            <!-- Contêiner para os botões -->
+        
             <div class="button-container">
                 <!-- Botão para adicionar os dados -->
                 <button id="add-data" type="submit">Adicionar Dados</button>
@@ -278,6 +329,7 @@
                     <button type="button" onclick="baixarExcel()">Baixar Excel</button>
                 </div>
             </div>
+
         </form>
     </div>
 </body>
