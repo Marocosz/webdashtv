@@ -125,6 +125,7 @@
         }
 
         #add-data {
+            flex: 4;
             background-color: #28a745;
         }
 
@@ -132,15 +133,89 @@
             background-color: #218838;
         }
 
-        .error {
-            border: 2px solid red;
-            background-color: #ffe6e6;
+        #delete-data {
+            background-color: #dc3545;
+            flex: 1;
         }
 
-        .error-message {
-            color: red;
-            font-size: 12px;
+        #delete-data:hover {
+            background-color: #c82333;
+        }
+
+        /* Estilização do modal */
+        .modal {
             display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal .close {
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        /* Contador de seleção */
+        .counter-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .counter-container button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            font-size: 20px;
+            padding: 5px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .counter-container button:hover {
+            background-color: #0056b3;
+        }
+
+        .counter-container input {
+            width: 50px;
+            text-align: center;
+            font-size: 16px;
+            margin: 0 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #confirm-delete {
+            padding: 10px;
+            font-size: 14px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        #confirm-delete:hover {
+            background-color: #c82333;
         }
     </style>
 
@@ -241,6 +316,69 @@
                 });
             });
         }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const modal = document.getElementById("delete-modal");
+            const closeModal = document.querySelector(".close");
+            const deleteButton = document.getElementById("delete-data");
+            const confirmDeleteButton = document.getElementById("confirm-delete");
+            const numLinhasInput = document.getElementById("numLinhas");
+            const decreaseButton = document.getElementById("decrease");
+            const increaseButton = document.getElementById("increase");
+
+            // Abrir modal
+            deleteButton.addEventListener("click", function() {
+                modal.style.display = "flex";
+            });
+
+            // Fechar modal ao clicar no "X"
+            closeModal.addEventListener("click", function() {
+                modal.style.display = "none";
+            });
+
+            // Fechar modal ao clicar fora dele
+            window.addEventListener("click", function(event) {
+                if (event.target === modal) {
+                    modal.style.display = "none";
+                }
+            });
+
+            // Aumentar o número de linhas a excluir
+            increaseButton.addEventListener("click", function() {
+                numLinhasInput.value = parseInt(numLinhasInput.value) + 1;
+            });
+
+            // Diminuir o número de linhas, mas sem permitir valores menores que 1
+            decreaseButton.addEventListener("click", function() {
+                if (parseInt(numLinhasInput.value) > 1) {
+                    numLinhasInput.value = parseInt(numLinhasInput.value) - 1;
+                }
+            });
+
+            // Evitar valores negativos ou zerados no input manual
+            numLinhasInput.addEventListener("input", function() {
+                if (numLinhasInput.value < 1) {
+                    numLinhasInput.value = 1;
+                }
+            });
+
+            // Confirmar exclusão de linhas
+            confirmDeleteButton.addEventListener("click", function() {
+                let numLinhas = parseInt(numLinhasInput.value);
+
+                fetch('/delete_last_rows', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ num_linhas: numLinhas })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    modal.style.display = "none"; // Fechar modal após excluir
+                })
+                .catch(error => console.error('Erro ao excluir linhas:', error));
+            });
+        });
     </script>
 </head>
 
@@ -295,7 +433,10 @@
             <textarea name="texto" rows="3" required></textarea>
 
             <div class="button-container">
-                <button id="add-data" type="submit">Adicionar Dados</button>
+                <div class="button-row">
+                    <button id="add-data" type="submit">Adicionar Dados</button>
+                    <button id="delete-data" type="button">Excluir Dados</button>
+                </div>
 
                 <div class="button-row">
                     <div class="date-container">
@@ -314,6 +455,21 @@
             </div>
 
         </form>
+    </div>
+
+    <!-- Modal para excluir linhas -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Excluir Últimas Linhas</h2>
+            <label for="numLinhas">Quantas linhas deseja excluir?</label>
+            <div class="counter-container">
+                <button id="decrease">−</button>
+                <input type="number" id="numLinhas" value="1" min="1">
+                <button id="increase">+</button>
+            </div>
+            <button id="confirm-delete">Confirmar</button>
+        </div>
     </div>
 </body>
 </html>

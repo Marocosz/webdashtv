@@ -173,6 +173,33 @@ def get_jornais():
     canal = request.json.get("canal")
     return jsonify(jornais.get(canal, []))
 
+@app.route('/delete_last_rows', methods=['POST'])
+def delete_last_rows():
+    try:
+        data = request.json
+        num_linhas = int(data.get("num_linhas", 0))
+
+        if not os.path.exists(EXCEL_FILE):
+            return jsonify({"message": "Arquivo Excel não encontrado."}), 404
+
+        # Carregar os dados
+        df = pd.read_excel(EXCEL_FILE)
+
+        # Verificar se há linhas suficientes para excluir
+        if num_linhas > len(df):
+            return jsonify({"message": f"Erro: O arquivo tem apenas {len(df)} linhas disponíveis."}), 400
+
+        # Excluir as últimas linhas
+        df = df.iloc[:-num_linhas]
+
+        # Salvar o novo arquivo
+        df.to_excel(EXCEL_FILE, index=False)
+
+        return jsonify({"message": f"{num_linhas} linhas excluídas com sucesso!"})
+
+    except Exception as e:
+        return jsonify({"message": f"Erro ao excluir linhas: {str(e)}"}), 500
+
 # Inicia o servidor Flask no modo de depuração
 if __name__ == '__main__':
     app.run(debug=True)
