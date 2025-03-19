@@ -148,21 +148,28 @@
 
         // Função que gera o texto da mensagem ao clicar no botão
         function gerarTextoMensagem() {
+            // Realiza uma requisição POST para o endpoint '/gerar_texto_mensagem'
             fetch('/gerar_texto_mensagem', {
-                method: 'POST'
+                method: 'POST'  // Define o método HTTP como POST
             })
-            .then(response => response.json())
+            .then(response => response.json())  // Converte a resposta em formato JSON
             .then(data => {
+                // Verifica se o campo 'texto' existe na resposta
                 if (data.texto) {
-                    // Criar nova página e exibir o texto gerado
+                    // Se o texto foi gerado, cria uma nova janela (página) em branco
                     const novaPagina = window.open('', '_blank');
+                    // Escreve o conteúdo HTML básico na nova página com o título "Clipping de Matérias"
                     novaPagina.document.write('<html><head><title>Clipping de Matérias</title></head><body>');
+                    // Exibe o texto gerado na nova página dentro de uma tag <pre> (preserva formatação de texto)
                     novaPagina.document.write('<pre>' + data.texto + '</pre>');
+                    // Fecha a tag <body> e <html> da página
                     novaPagina.document.write('</body></html>');
                 } else {
+                    // Se não houver o campo 'texto', exibe um alerta com a mensagem de erro
                     alert('Erro: ' + data.message);
                 }
             })
+            // Captura qualquer erro ocorrido na requisição e exibe no console
             .catch(error => console.error('Erro ao gerar texto:', error));
         }
 

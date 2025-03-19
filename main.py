@@ -63,45 +63,68 @@ def process():
 def download_excel():
     return send_file(EXCEL_FILE, as_attachment=True, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", download_name="dados.xlsx")
 
+# Define a rota '/gerar_texto_mensagem' e especifica que ela aceita requisições POST
 @app.route('/gerar_texto_mensagem', methods=['POST'])
 def gerar_texto_mensagem():
     verificar_arquivo()
     df = pd.read_excel(EXCEL_FILE)
 
+    # Verifica se o DataFrame está vazio (sem dados) e, se estiver, retorna uma mensagem de erro
     if df.empty:
         return jsonify({"message": "Nenhum dado disponível para gerar o texto."})
     
-    # Obtém a data atual no formato necessário
-    data_atual = datetime.now().strftime('%d-%m-%y')  # Formato: 14-03-25
+    # Obtém a data atual no formato 'dia-mês-ano' (exemplo: 14-03-25)
+    data_atual = datetime.now().strftime('%d-%m-%y')
+    
+    # Converte a coluna 'DataHora' do DataFrame para o tipo datetime (caso não esteja nesse formato)
     df['DataHora'] = pd.to_datetime(df['DataHora'])
-    df_dia = df[df['DataHora'].dt.date == datetime.now().date()]  # Filtra registros do dia atual
+    
+    # Filtra as linhas do DataFrame para pegar apenas os registros com a data de hoje
+    df_dia = df[df['DataHora'].dt.date == datetime.now().date()]
 
+    # Verifica se o DataFrame filtrado está vazio (sem registros para o dia de hoje)
     if df_dia.empty:
         return jsonify({"message": "Nenhum dado para o dia de hoje."})
 
-    # Criar estrutura do texto
+    # Inicia a construção do texto de saída com um título, incluindo a data atual
     texto_mensagem = f"*CLIPPING | {data_atual}*\n\n\n\n"
     
-    # Agrupar por Jornal
+    # Pega todos os jornais únicos presentes no DataFrame filtrado
     jornais = df_dia['Jornal'].unique()
+    
+    # Para cada jornal encontrado no DataFrame
     for jornal in jornais:
+        # Adiciona o nome do jornal ao texto de saída com um ícone de TV
         texto_mensagem += f"*📺{jornal}*\n\n"
         
+        # Filtra os registros do DataFrame para incluir apenas os do jornal atual
         df_jornal = df_dia[df_dia['Jornal'] == jornal]
+        
+        # Itera sobre as linhas do DataFrame filtrado por jornal
         for _, row in df_jornal.iterrows():
+            # Extrai o horário da notícia e converte para o formato 'HH:MM'
             hora = row['DataHora'].strftime('%H:%M')
+            
+            # Extrai o teor (positiva, neutra, negativa) e o texto da notícia
             teor = row['Teor']
             texto = row['Texto']
             
-            # Ícone correspondente ao teor
+            # Define o ícone a ser usado com base no teor da notícia
             icone_teor = "🔴" if teor.lower() == "negativa" else "⚪" if teor.lower() == "neutra" else "🟢"
             
+            # Adiciona o horário ao texto de saída
             texto_mensagem += f"⏰*{hora}*\n"
+            
+            # Adiciona o teor e o ícone correspondente ao texto de saída
             texto_mensagem += f"*{icone_teor}{teor}*\n"
+            
+            # Adiciona o conteúdo da notícia ao texto de saída
             texto_mensagem += f"ℹ️{texto}\n\n"
             
+        # Adiciona uma linha de separação entre os jornais
         texto_mensagem += f"-----------------------------------\n\n"
 
+    # Retorna o texto gerado como um JSON com o campo 'texto'
     return jsonify({"texto": texto_mensagem})
 
 # Rota para gerar e baixar o dashboard em PDF
