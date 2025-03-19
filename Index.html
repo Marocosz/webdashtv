@@ -125,6 +125,7 @@
     <script>
         // Função que envia os dados do formulário
         function enviarDados(event) {
+            console.log("Função enviarDados foi chamada.");
             event.preventDefault(); // Impede o envio padrão do formulário
 
             // Coletando os dados do formulário
@@ -141,6 +142,8 @@
                 document.getElementById('data-form').reset(); // Reseta o formulário após o envio
             })
             .catch(error => console.error('Erro:', error)); // Exibe erros no console
+
+            console.log("Dados coletados:", Object.fromEntries(formData));
         }
 
         // Função que gera o texto da mensagem ao clicar no botão
@@ -218,7 +221,7 @@
             .then(response => response.json())
             .then(data => {
                 let jornalSelect = document.getElementById("jornal");
-                jornalSelect.innerHTML = "";
+                //jornalSelect.innerHTML = "<option value=''>Selecione um jornal</option>";
                 data.forEach(jornal => {
                     let option = document.createElement("option");
                     option.value = jornal;
@@ -227,39 +230,6 @@
                 });
             });
         }
-
-        function validarSelecao(event) {
-            let canal = document.getElementById("canal");
-            let jornal = document.getElementById("jornal");
-            let erroCanal = document.getElementById("erro-canal");
-            let erroJornal = document.getElementById("erro-jornal");
-            let erro = false;
-
-            if (!canal.value) {
-                canal.classList.add("error");
-                erroCanal.style.display = "block";
-                erro = true;
-            }
-
-            if (!jornal.value) {
-                jornal.classList.add("error");
-                erroJornal.style.display = "block";
-                erro = true;
-            }
-
-            if (erro) {
-                event.preventDefault(); // Impede o envio do formulário
-            }
-        }
-
-        function removerErro(id) {
-            let campo = document.getElementById(id);
-            let erroMsg = document.getElementById("erro-" + id);
-
-            campo.classList.remove("error");
-            erroMsg.style.display = "none";
-        }
-
     </script>
 </head>
 
@@ -268,25 +238,26 @@
         <!-- Título da página -->
         <h1>Registro de Matérias</h1>
 
-        <form id="data-form" onsubmit="validarSelecao(event); if (!event.defaultPrevented) enviarDados(event);">
+        <form id="data-form" onsubmit="enviarDados(event);">
             <label for="canal">Canal</label>
-            <select id="canal" name="canal" onchange="updateJornais(); removerErro('canal')">
+            <select id="canal" name="canal" onchange="updateJornais();" required>
                 <option value="">Selecione um canal</option>
                 <option value="Globo">Globo</option>
                 <option value="Record">Record</option>
             </select>
 
-            <div id="erro-canal" class="error-message">Selecione um canal</div>
+            <!--<div id="erro-canal" class="error-message">Selecione um canal</div>-->
         
             <label for="jornal">Jornal</label>
-            <select id="jornal" name="jornal" onchange="removerErro('jornal')">
+            <select id="jornal" name="jornal" required>
                 <option value="">Selecione um jornal</option>
             </select>
 
-            <div id="erro-jornal" class="error-message">Selecione um jornal</div>
+            <!--<div id="erro-jornal" class="error-message">Selecione um jornal</div>-->
         
             <label for="tema">Tema</label>
-            <select name="tema" required>
+            <select id="tema" name="tema" required>
+                <option value="">Escolha um Tema</option>
                 <option value="Agricultura">Agricultura</option>
                 <option value="Codemca">Codemca</option>
                 <option value="Cultura">Cultura</option>
@@ -303,16 +274,21 @@
                 <option value="Transporte">Transporte</option>
                 <option value="Turismo">Turismo</option>
             </select>
+
+            <!--<div id="erro-tema" class="error-message">Selecione um tema</div>-->
         
             <label for="datahora">Data e Hora</label>
             <input type="datetime-local" name="datahora" required>
         
             <label for="teor">Teor</label>
-            <select name="teor" required>
+            <select id="teor" name="teor" required>
+                <option value="">Escolha um Teor</option>
                 <option value="Negativo">Negativo</option>
                 <option value="Neutro">Neutro</option>
                 <option value="Positivo">Positivo</option>
             </select>
+
+            <!--<div id="erro-teor" class="error-message">Selecione um teor</div> -->
         
             <label for="texto">Texto da Matéria</label>
             <textarea name="texto" rows="3" required></textarea>
