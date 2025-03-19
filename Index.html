@@ -1,90 +1,76 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <!-- Definindo a codificação de caracteres para UTF-8 -->
     <meta charset="UTF-8">
-    
-    <!-- Tornando a página responsiva, ajustando o conteúdo à largura da tela -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Definindo o título da página que aparecerá na aba do navegador -->
     <title>Registro de Matérias</title>
 
-    <!-- Estilos CSS -->
     <style>
-        /* Resetando margens e preenchimentos padrão de todos os elementos */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        /* Estilo geral para o corpo da página */
         body {
-            font-family: Arial, sans-serif; /* Definindo a fonte da página */
-            display: flex; /* Usando o Flexbox para centralizar o conteúdo */
-            justify-content: center; /* Alinhando o conteúdo horizontalmente */
-            align-items: center; /* Alinhando o conteúdo verticalmente */
-            min-height: 100vh; /* Garantindo que o conteúdo ocupe ao menos toda a altura da tela */
-            text-align: center; /* Centralizando o texto */
-            background-color: #f4f4f4; /* Cor de fundo da página */
-            padding: 20px; /* Adicionando espaço nas bordas da tela */
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            background-color: #f4f4f4;
+            padding: 20px;
         }
 
-        /* Estilo do contêiner que envolve o formulário */
         .container {
-            width: 100%; /* A largura do contêiner ocupa toda a largura disponível */
-            max-width: 600px; /* Largura máxima do contêiner */
-            padding: 20px; /* Espaçamento interno */
-            background-color: white; /* Cor de fundo branca */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave ao redor do contêiner */
-            border-radius: 8px; /* Bordas arredondadas */
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
         }
 
-        /* Estilo do título principal */
         h1 {
-            margin-bottom: 20px; /* Margem inferior para separar do conteúdo abaixo */
+            margin-bottom: 20px;
+            color: #007BFF; /* Cor azul */
+            text-align: center; /* Centralizando o título */
         }
 
-        /* Estilo das labels (rótulos) dos campos */
         label {
-            display: block; /* Faz a label ocupar toda a largura */
-            text-align: left; /* Alinhamento do texto à esquerda */
-            font-weight: bold; /* Texto em negrito */
-            margin-top: 10px; /* Espaço superior entre a label e o conteúdo acima */
+            display: block;
+            text-align: left;
+            font-weight: bold;
+            margin-top: 10px;
         }
 
-        /* Estilo dos campos de input, select, textarea e botão */
         select, input, textarea, button {
-            width: 100%; /* Largura total disponível */
-            margin: 10px 0; /* Margem superior e inferior */
-            padding: 8px; /* Preenchimento interno */
-            display: block; /* Exibindo como bloco, ocupando toda a largura */
-            border: 1px solid #ccc; /* Borda cinza clara */
-            border-radius: 4px; /* Bordas arredondadas */
+            width: 100%;
+            margin: 10px 0;
+            padding: 8px;
+            display: block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
         }
 
-        /* Estilo específico para o campo de texto (textarea) */
         textarea {
-            resize: vertical; /* Permite redimensionar apenas verticalmente */
-            min-height: 50px; /* Altura mínima do campo de texto */
+            resize: vertical;
+            min-height: 50px;
         }
 
-        /* Estilo para o contêiner dos botões */
         .button-container {
-            display: flex; /* Usando flexbox para alinhar os botões */
-            flex-direction: column; /* Organizando os botões em uma coluna */
-            gap: 10px; /* Espaço entre os botões */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        /* Estilo para a linha de botões */
         .button-row {
-            display: flex; /* Usando flexbox para alinhar os botões na mesma linha */
-            justify-content: space-between; /* Distribuindo os botões com espaço entre eles */
-            gap: 10px; /* Espaço entre os botões */
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
         }
 
-        /* Botão "Gerar Texto Mensagem" que ocupa o restante da linha */
         .gerar-texto-mensagem {
             padding: 12px;
             font-size: 16px;
@@ -93,19 +79,16 @@
             border: none;
             cursor: pointer;
             border-radius: 5px;
-            width: 100%; /* Define a largura do botão como 100% */
+            width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        /* Efeito de hover no botão */
         .gerar-texto-mensagem:hover {
-            background-color: #0056b3; /* Cor ao passar o mouse */
+            background-color: #0056b3;
         }
 
-
-        /* Estilo dos outros botões */
         button {
             padding: 10px;
             font-size: 14px;
@@ -114,53 +97,45 @@
             border: none;
             cursor: pointer;
             border-radius: 5px;
-            width: 100%; /* Garante que todos os botões tenham a mesma largura */
+            width: 100%;
         }
 
         button:hover {
             background-color: #0056b3;
         }
 
-        /* Estilo do campo de data */
         .date-container {
             display: flex;
             align-items: center;
-            width: 50%; /* Define a largura para o campo de data */
+            width: 50%;
             justify-content: center;
         }
 
         #dataEscolhida {
-            justify-content: center;
-            align-items: center;
             padding: 8px;
             border-radius: 5px;
             border: 1px solid #ccc;
             font-size: 14px;
-            width: 120px;  /* Ajusta a largura do campo de data */
+            width: 120px;
         }
 
         label[for="dataEscolhida"] {
-            justify-content: center;
-            align-items: center;
-            font-size: 18px; /* Diminui o tamanho da fonte da label */
-            margin-right: 5px; /* Espaçamento entre a label e o campo de data */
-            text-align: center; /* Centraliza a palavra "data" */
-        }
-        
-        /* Estilo específico para o botão de adicionar dados */
-        #add-data {
-            background-color: #28a745; /* Cor de fundo verde */
+            font-size: 18px;
+            margin-right: 5px;
         }
 
-        /* Efeito de hover para o botão de adicionar dados */
+        #add-data {
+            background-color: #28a745;
+        }
+
         #add-data:hover {
-            background-color: #218838; /* Escurece a cor de fundo */
+            background-color: #218838;
         }
 
         .error {
-        border: 2px solid red;
-        background-color: #ffe6e6;
-    }
+            border: 2px solid red;
+            background-color: #ffe6e6;
+        }
 
         .error-message {
             color: red;
@@ -169,54 +144,37 @@
         }
     </style>
 
-    <!-- Scripts JavaScript -->
     <script>
-        // Função que envia os dados do formulário
         function enviarDados(event) {
-            console.log("Função enviarDados foi chamada.");
-            event.preventDefault(); // Impede o envio padrão do formulário
-
-            // Coletando os dados do formulário
+            event.preventDefault();
             const formData = new FormData(document.getElementById('data-form'));
-
-            // Enviando os dados para o servidor
             fetch('/process', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json()) // Converte a resposta para JSON
+            .then(response => response.json())
             .then(data => {
-                alert(data.message); // Exibe a mensagem recebida do servidor
-                document.getElementById('data-form').reset(); // Reseta o formulário após o envio
+                alert(data.message);
+                document.getElementById('data-form').reset();
             })
-            .catch(error => console.error('Erro:', error)); // Exibe erros no console
-
-            console.log("Dados coletados:", Object.fromEntries(formData));
+            .catch(error => console.error('Erro:', error));
         }
 
-        // Função que gera o texto da mensagem ao clicar no botão
         function gerarTextoMensagem() {
-            // Obtém a data escolhida pelo usuário
             const dataEscolhida = document.getElementById("dataEscolhida").value;
-            
-            // Verifica se uma data foi selecionada
             if (!dataEscolhida) {
                 alert('Por favor, escolha uma data!');
                 return;
             }
 
-            // Faz a requisição POST para o servidor, enviando a data escolhida
             fetch('/gerar_texto_mensagem', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ data: dataEscolhida }) // Envia a data como JSON
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: dataEscolhida })
             })
-            .then(response => response.json())  // Converte a resposta em JSON
+            .then(response => response.json())
             .then(data => {
                 if (data.texto) {
-                    // Se o texto foi gerado, cria uma nova página e exibe o texto gerado
                     const novaPagina = window.open('', '_blank');
                     novaPagina.document.write('<html><head><title>Clipping de Matérias</title></head><body>');
                     novaPagina.document.write('<pre>' + data.texto + '</pre>');
@@ -228,35 +186,32 @@
             .catch(error => console.error('Erro ao gerar texto:', error));
         }
 
-
-        // Função que gera o dashboard
         function gerarDashboard() {
-            fetch('/generate_dashboard') // Envia uma requisição para gerar o dashboard
-            .then(response => response.blob()) // Converte a resposta para um blob (arquivo)
+            fetch('/generate_dashboard')
+            .then(response => response.blob())
             .then(blob => {
-                const url = window.URL.createObjectURL(blob); // Cria uma URL temporária para o arquivo
-                const a = document.createElement('a'); // Cria um elemento <a> para fazer o download
-                a.href = url; // Define o link de download
-                a.download = 'dashboard.pdf'; // Define o nome do arquivo a ser baixado
-                document.body.appendChild(a); // Adiciona o link ao corpo da página
-                a.click(); // Simula o clique para iniciar o download
-                a.remove(); // Remove o link da página
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'dashboard.pdf';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
             })
-            .catch(error => console.error('Erro ao gerar dashboard:', error)); // Exibe erros no console
+            .catch(error => console.error('Erro ao gerar dashboard:', error));
         }
 
-        // Função para baixar excel
         function baixarExcel() {
-            fetch('/baixar_excel') // Envia uma requisição para baixar o arquivo Excel
-            .then(response => response.blob()) // Converte a resposta para um blob (arquivo)
+            fetch('/baixar_excel')
+            .then(response => response.blob())
             .then(blob => {
-                const url = window.URL.createObjectURL(blob); // Cria uma URL temporária
-                const a = document.createElement('a'); // Cria um elemento <a>
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
                 a.href = url;
-                a.download = 'dados.xlsx'; // Define o nome do arquivo
+                a.download = 'dados.xlsx';
                 document.body.appendChild(a);
-                a.click(); // Simula o clique para baixar
-                a.remove(); // Remove o link
+                a.click();
+                a.remove();
             })
             .catch(error => console.error('Erro ao baixar Excel:', error));
         }
@@ -265,25 +220,19 @@
             let canal = document.getElementById("canal").value;
             let jornalSelect = document.getElementById("jornal");
 
-            // Limpa as opções anteriores e adiciona a opção padrão
             jornalSelect.innerHTML = "<option value=''>Selecione um jornal</option>";
-            
             if (!canal) {
                 alert("Por favor, selecione um canal antes de escolher um jornal.");
                 return;
-    }
+            }
 
             fetch('/get_jornais', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({canal: canal})
             })
-
-            
             .then(response => response.json())
             .then(data => {
-                let jornalSelect = document.getElementById("jornal");
-                //jornalSelect.innerHTML = "<option value=''>Selecione um jornal</option>";
                 data.forEach(jornal => {
                     let option = document.createElement("option");
                     option.value = jornal;
@@ -297,9 +246,7 @@
 
 <body>
     <div class="container">
-        <!-- Título da página -->
         <h1>Registro de Matérias</h1>
-
         <form id="data-form" onsubmit="enviarDados(event);">
             <label for="canal">Canal</label>
             <select id="canal" name="canal" onchange="updateJornais();" required>
@@ -308,15 +255,11 @@
                 <option value="Record">Record</option>
             </select>
 
-            <!--<div id="erro-canal" class="error-message">Selecione um canal</div>-->
-        
             <label for="jornal">Jornal</label>
             <select id="jornal" name="jornal" required>
                 <option value="">Selecione um jornal</option>
             </select>
 
-            <!--<div id="erro-jornal" class="error-message">Selecione um jornal</div>-->
-        
             <label for="tema">Tema</label>
             <select id="tema" name="tema" required>
                 <option value="">Escolha um Tema</option>
@@ -337,11 +280,9 @@
                 <option value="Turismo">Turismo</option>
             </select>
 
-            <!--<div id="erro-tema" class="error-message">Selecione um tema</div>-->
-        
             <label for="datahora">Data e Hora</label>
             <input type="datetime-local" name="datahora" required>
-        
+
             <label for="teor">Teor</label>
             <select id="teor" name="teor" required>
                 <option value="">Escolha um Teor</option>
@@ -350,27 +291,21 @@
                 <option value="Positivo">Positivo</option>
             </select>
 
-            <!--<div id="erro-teor" class="error-message">Selecione um teor</div> -->
-        
             <label for="texto">Texto da Matéria</label>
             <textarea name="texto" rows="3" required></textarea>
-        
+
             <div class="button-container">
-                <!-- Botão para adicionar os dados -->
                 <button id="add-data" type="submit">Adicionar Dados</button>
-            
-                <!-- Linha com os campos de data e botão de gerar texto mensagem -->
+
                 <div class="button-row">
                     <div class="date-container">
                         <label for="dataEscolhida" class="label">Data</label>
                         <input type="date" id="dataEscolhida" name="dataEscolhida">
                     </div>
                     
-                    <!-- Botão "Gerar Texto Mensagem" ocupa o restante da linha -->
                     <button onclick="gerarTextoMensagem()" class="gerar-texto-mensagem">Gerar Texto Mensagem</button>
                 </div>
             
-                <!-- Botões adicionais abaixo -->
                 <div class="button-row">
                     <button type="button" onclick="gerarDashboard()">Gerar Dashboard Mensal</button>
                     <button type="button">Gerar Texto XML Mensal</button>
