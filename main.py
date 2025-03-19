@@ -63,68 +63,69 @@ def process():
 def download_excel():
     return send_file(EXCEL_FILE, as_attachment=True, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", download_name="dados.xlsx")
 
-# Define a rota '/gerar_texto_mensagem' e especifica que ela aceita requisições POST
+# Função para verificar a existência do arquivo (exemplo de implementação)
+def verificar_arquivo():
+    # Verifica se o arquivo existe e pode ser lido
+    pass  # Implementar a lógica de verificação
+
 @app.route('/gerar_texto_mensagem', methods=['POST'])
 def gerar_texto_mensagem():
+    # Obtém os dados enviados pelo frontend (data escolhida)
+    data_recebida = request.json.get('data')  # Obtém a data do corpo da requisição
+    
+    if not data_recebida:
+        return jsonify({"message": "Data não fornecida."})
+
+    # Verifica se a data fornecida está no formato correto
+    try:
+        data_escolhida = datetime.strptime(data_recebida, '%Y-%m-%d').date()  # Formato: 'YYYY-MM-DD'
+    except ValueError:
+        return jsonify({"message": "Data inválida. Use o formato YYYY-MM-DD."})
+
+    # Chama a função para verificar a existência de arquivos necessários
     verificar_arquivo()
+
+    # Lê os dados do arquivo Excel
     df = pd.read_excel(EXCEL_FILE)
 
-    # Verifica se o DataFrame está vazio (sem dados) e, se estiver, retorna uma mensagem de erro
+    # Verifica se o DataFrame está vazio
     if df.empty:
         return jsonify({"message": "Nenhum dado disponível para gerar o texto."})
-    
-    # Obtém a data atual no formato 'dia-mês-ano' (exemplo: 14-03-25)
-    data_atual = datetime.now().strftime('%d-%m-%y')
-    
-    # Converte a coluna 'DataHora' do DataFrame para o tipo datetime (caso não esteja nesse formato)
+
+    # Converte a coluna 'DataHora' para datetime (se ainda não estiver)
     df['DataHora'] = pd.to_datetime(df['DataHora'])
-    
-    # Filtra as linhas do DataFrame para pegar apenas os registros com a data de hoje
-    df_dia = df[df['DataHora'].dt.date == datetime.now().date()]
 
-    # Verifica se o DataFrame filtrado está vazio (sem registros para o dia de hoje)
+    # Filtra os dados para pegar apenas os registros da data escolhida
+    df_dia = df[df['DataHora'].dt.date == data_escolhida]
+
+    # Verifica se há dados para a data escolhida
     if df_dia.empty:
-        return jsonify({"message": "Nenhum dado para o dia de hoje."})
+        return jsonify({"message": f"Nenhum dado para a data {data_escolhida.strftime('%d-%m-%Y')}."})
 
-    # Inicia a construção do texto de saída com um título, incluindo a data atual
-    texto_mensagem = f"*CLIPPING | {data_atual}*\n\n\n\n"
+    # Geração do texto
+    texto_mensagem = f"*CLIPPING | {data_escolhida.strftime('%d-%m-%y')}*\n\n\n\n"
     
-    # Pega todos os jornais únicos presentes no DataFrame filtrado
+    # Agrupa as notícias por jornal
     jornais = df_dia['Jornal'].unique()
-    
-    # Para cada jornal encontrado no DataFrame
     for jornal in jornais:
-        # Adiciona o nome do jornal ao texto de saída com um ícone de TV
         texto_mensagem += f"*📺{jornal}*\n\n"
         
-        # Filtra os registros do DataFrame para incluir apenas os do jornal atual
         df_jornal = df_dia[df_dia['Jornal'] == jornal]
-        
-        # Itera sobre as linhas do DataFrame filtrado por jornal
         for _, row in df_jornal.iterrows():
-            # Extrai o horário da notícia e converte para o formato 'HH:MM'
             hora = row['DataHora'].strftime('%H:%M')
-            
-            # Extrai o teor (positiva, neutra, negativa) e o texto da notícia
             teor = row['Teor']
             texto = row['Texto']
             
-            # Define o ícone a ser usado com base no teor da notícia
+            # Define o ícone baseado no teor da notícia
             icone_teor = "🔴" if teor.lower() == "negativa" else "⚪" if teor.lower() == "neutra" else "🟢"
             
-            # Adiciona o horário ao texto de saída
             texto_mensagem += f"⏰*{hora}*\n"
-            
-            # Adiciona o teor e o ícone correspondente ao texto de saída
             texto_mensagem += f"*{icone_teor}{teor}*\n"
-            
-            # Adiciona o conteúdo da notícia ao texto de saída
             texto_mensagem += f"ℹ️{texto}\n\n"
             
-        # Adiciona uma linha de separação entre os jornais
         texto_mensagem += f"-----------------------------------\n\n"
 
-    # Retorna o texto gerado como um JSON com o campo 'texto'
+    # Retorna o texto gerado para o frontend
     return jsonify({"texto": texto_mensagem})
 
 # Rota para gerar e baixar o dashboard em PDF

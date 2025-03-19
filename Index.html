@@ -84,21 +84,69 @@
             gap: 10px; /* Espaço entre os botões */
         }
 
-        /* Estilo dos botões */
+        /* Botão "Gerar Texto Mensagem" que ocupa o restante da linha */
+        .gerar-texto-mensagem {
+            padding: 12px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 100%; /* Define a largura do botão como 100% */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Efeito de hover no botão */
+        .gerar-texto-mensagem:hover {
+            background-color: #0056b3; /* Cor ao passar o mouse */
+        }
+
+
+        /* Estilo dos outros botões */
         button {
-            background-color: #007BFF; /* Cor de fundo azul */
-            color: white; /* Texto branco */
-            border: none; /* Removendo bordas */
-            cursor: pointer; /* Aparece como uma mão quando o mouse passa sobre o botão */
-            border-radius: 5px; /* Bordas arredondadas */
-            flex: 1; /* Faz o botão ocupar o máximo de espaço possível */
+            padding: 10px;
+            font-size: 14px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 100%; /* Garante que todos os botões tenham a mesma largura */
         }
 
-        /* Efeito de hover (quando o mouse passa sobre o botão) */
         button:hover {
-            background-color: #0056b3; /* Escurece a cor de fundo */
+            background-color: #0056b3;
         }
 
+        /* Estilo do campo de data */
+        .date-container {
+            display: flex;
+            align-items: center;
+            width: 50%; /* Define a largura para o campo de data */
+            justify-content: center;
+        }
+
+        #dataEscolhida {
+            justify-content: center;
+            align-items: center;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            width: 120px;  /* Ajusta a largura do campo de data */
+        }
+
+        label[for="dataEscolhida"] {
+            justify-content: center;
+            align-items: center;
+            font-size: 18px; /* Diminui o tamanho da fonte da label */
+            margin-right: 5px; /* Espaçamento entre a label e o campo de data */
+            text-align: center; /* Centraliza a palavra "data" */
+        }
+        
         /* Estilo específico para o botão de adicionar dados */
         #add-data {
             background-color: #28a745; /* Cor de fundo verde */
@@ -148,28 +196,35 @@
 
         // Função que gera o texto da mensagem ao clicar no botão
         function gerarTextoMensagem() {
-            // Realiza uma requisição POST para o endpoint '/gerar_texto_mensagem'
+            // Obtém a data escolhida pelo usuário
+            const dataEscolhida = document.getElementById("dataEscolhida").value;
+            
+            // Verifica se uma data foi selecionada
+            if (!dataEscolhida) {
+                alert('Por favor, escolha uma data!');
+                return;
+            }
+
+            // Faz a requisição POST para o servidor, enviando a data escolhida
             fetch('/gerar_texto_mensagem', {
-                method: 'POST'  // Define o método HTTP como POST
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ data: dataEscolhida }) // Envia a data como JSON
             })
-            .then(response => response.json())  // Converte a resposta em formato JSON
+            .then(response => response.json())  // Converte a resposta em JSON
             .then(data => {
-                // Verifica se o campo 'texto' existe na resposta
                 if (data.texto) {
-                    // Se o texto foi gerado, cria uma nova janela (página) em branco
+                    // Se o texto foi gerado, cria uma nova página e exibe o texto gerado
                     const novaPagina = window.open('', '_blank');
-                    // Escreve o conteúdo HTML básico na nova página com o título "Clipping de Matérias"
                     novaPagina.document.write('<html><head><title>Clipping de Matérias</title></head><body>');
-                    // Exibe o texto gerado na nova página dentro de uma tag <pre> (preserva formatação de texto)
                     novaPagina.document.write('<pre>' + data.texto + '</pre>');
-                    // Fecha a tag <body> e <html> da página
                     novaPagina.document.write('</body></html>');
                 } else {
-                    // Se não houver o campo 'texto', exibe um alerta com a mensagem de erro
                     alert('Erro: ' + data.message);
                 }
             })
-            // Captura qualquer erro ocorrido na requisição e exibe no console
             .catch(error => console.error('Erro ao gerar texto:', error));
         }
 
@@ -303,10 +358,20 @@
             <div class="button-container">
                 <!-- Botão para adicionar os dados -->
                 <button id="add-data" type="submit">Adicionar Dados</button>
-                
-                <!-- Linha com botões adicionais -->
+            
+                <!-- Linha com os campos de data e botão de gerar texto mensagem -->
                 <div class="button-row">
-                    <button type="button" onclick="gerarTextoMensagem()">Gerar Texto Mensagem</button>
+                    <div class="date-container">
+                        <label for="dataEscolhida" class="label">Data</label>
+                        <input type="date" id="dataEscolhida" name="dataEscolhida">
+                    </div>
+                    
+                    <!-- Botão "Gerar Texto Mensagem" ocupa o restante da linha -->
+                    <button onclick="gerarTextoMensagem()" class="gerar-texto-mensagem">Gerar Texto Mensagem</button>
+                </div>
+            
+                <!-- Botões adicionais abaixo -->
+                <div class="button-row">
                     <button type="button" onclick="gerarDashboard()">Gerar Dashboard Mensal</button>
                     <button type="button">Gerar Texto XML Mensal</button>
                     <button type="button" onclick="baixarExcel()">Baixar Excel</button>
