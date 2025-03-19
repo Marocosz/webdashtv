@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from fpdf import FPDF
 
 # Inicializando o aplicativo Flask
-app = Flask(__name__, template_folder=os.path.dirname(__file__))
+app = Flask(__name__, template_folder='templates')
 
 # Dicionário com os canais e seus respectivos jornais
 jornais = {
