@@ -1,6 +1,7 @@
 function enviarDados(event) {
     event.preventDefault();
     const formData = new FormData(document.getElementById('data-form'));
+
     fetch('/process', {
         method: 'POST',
         body: formData
@@ -9,6 +10,10 @@ function enviarDados(event) {
     .then(data => {
         alert(data.message);
         document.getElementById('data-form').reset();
+
+        // Resetar o campo "Jornal" após adicionar os dados
+        let jornalSelect = document.getElementById("jornal");
+        jornalSelect.innerHTML = "<option value=''>Selecione um jornal</option>";
     })
     .catch(error => console.error('Erro:', error));
 }
@@ -74,6 +79,7 @@ function updateJornais() {
     let jornalSelect = document.getElementById("jornal");
 
     jornalSelect.innerHTML = "<option value=''>Selecione um jornal</option>";
+    
     if (!canal) {
         alert("Por favor, selecione um canal antes de escolher um jornal.");
         return;
@@ -146,7 +152,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         fetch('/delete_last_rows', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify({ num_linhas: numLinhas })
         })
         .then(response => response.json())
