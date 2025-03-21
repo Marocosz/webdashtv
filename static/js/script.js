@@ -103,7 +103,6 @@ function updateJornais() {
 
 document.addEventListener("DOMContentLoaded", function() {
     const modal = document.getElementById("delete-modal");
-    const closeModal = document.querySelector(".close");
     const deleteButton = document.getElementById("delete-data");
     const confirmDeleteButton = document.getElementById("confirm-delete");
     const numLinhasInput = document.getElementById("numLinhas");
@@ -113,11 +112,6 @@ document.addEventListener("DOMContentLoaded", function() {
     // Abrir modal
     deleteButton.addEventListener("click", function() {
         modal.style.display = "flex";
-    });
-
-    // Fechar modal ao clicar no "X"
-    closeModal.addEventListener("click", function() {
-        modal.style.display = "none";
     });
 
     // Fechar modal ao clicar fora dele
@@ -163,3 +157,43 @@ document.addEventListener("DOMContentLoaded", function() {
         .catch(error => console.error('Erro ao excluir linhas:', error));
     });
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+    const dashboardModal = document.getElementById("dashboard-modal");
+    const openDashboardButton = document.getElementById("dashboard-button");
+    const confirmDashboardButton = document.getElementById("confirm-dashboard");
+    const mesSelecionado = document.getElementById("mesSelecionado");
+    
+    
+
+    // Abrir modal ao clicar no botão "Gerar Dashboard Mensal"
+    openDashboardButton.addEventListener("click", function () {
+        dashboardModal.style.display = "flex";
+    });
+
+    // Fechar modal ao clicar fora dele
+    window.addEventListener("click", function (event) {
+        if (event.target === dashboardModal) {
+            dashboardModal.style.display = "none";
+        }
+    });
+
+    // Capturar seleção do mês e fechar modal
+    confirmDashboardButton.addEventListener("click", function () {
+        if (!mesSelecionado.value) {
+            alert("Por favor, selecione um mês.");
+            return;
+        }
+
+        alert("Dashboard para " + mesSelecionado.value + " será gerado!"); // Substitua por sua lógica real
+        dashboardModal.style.display = "none"; // Fechar modal após escolha
+    });
+});
+
+document.getElementById("dashboard-button").addEventListener("click", function(event) {
+    event.preventDefault(); // Impede o envio do formulário ou qualquer ação padrão
+
+    // Aqui você pode adicionar a lógica do "Gerar Dashboard Mensal"
+    console.log("Gerar Dashboard Mensal clicado!");
+});
+

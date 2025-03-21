@@ -74,7 +74,7 @@
                 </div>
             
                 <div class="button-row">
-                    <button type="button" onclick="gerarDashboard()">Gerar Dashboard Mensal</button>
+                    <button id="dashboard-button">Gerar Dashboard Mensal</button>
                     <button type="button">Gerar Texto XML Mensal</button>
                     <button type="button" onclick="baixarExcel()">Baixar Excel</button>
                 </div>
@@ -86,7 +86,6 @@
     <!-- Modal para excluir linhas -->
     <div id="delete-modal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
             <h2>Excluir Últimas Linhas</h2>
             <label for="numLinhas">Quantas linhas deseja excluir?</label>
             <div class="counter-container">
@@ -95,6 +94,30 @@
                 <button id="increase">+</button>
             </div>
             <button id="confirm-delete">Confirmar</button>
+        </div>
+    </div>
+
+    <!-- Modal para seleção de mês antes de gerar o dashboard -->
+    <div id="dashboard-modal" class="modal">
+        <div class="modal-content">
+            <h2>Selecionar Mês</h2>
+            <div class="counter-container">
+                <select id="mesSelecionado" name="mes" required>
+                    <option value="1">Janeiro</option>
+                    <option value="2">Fevereiro</option>
+                    <option value="3">Março</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Maio</option>
+                    <option value="6">Junho</option>
+                    <option value="7">Julho</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                  </select>
+            </div>
+            <button id="confirm-dashboard">Gerar Dashboard</button>
         </div>
     </div>
 
