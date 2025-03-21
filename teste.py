@@ -9,6 +9,9 @@ df = pd.read_excel('dados.xlsx')
 df['DataHora'] = pd.to_datetime(df['DataHora'])
 
 # Filtrar os dados do mês desejado
+num_mes = {1:'Janeiro', 2:'Fevereiro', 3:'Março', 4:'Abril', 5:'Maio', 
+           6:'Junho', 7:'Julho', 8:'Agosto', 9:'Setembro', 10:'Outubro', 11:'Novembro', 12:'Dezembro'}
+
 mes_desejado = 3  # Alterar para o mês desejado
 df_mes = df[df['DataHora'].dt.month == mes_desejado]
 
@@ -32,7 +35,7 @@ else:
         fig, ax = plt.subplots(figsize=(6, 6))
         
         # Definir cores personalizadas para o gráfico
-        cores_pizza = ['#F40000', '#03C04A']  # Vermelho para "Negativo", verde para "Positivo"
+        cores_pizza = ['#03C04A', '#F40000']  # verde para "Positivo" e Vermelho para "Negativo"
         
         # Criar o gráfico de pizza
         wedges, texts, autotexts = ax.pie(
@@ -41,17 +44,18 @@ else:
             autopct=lambda pct: func(pct, contagem_teor_filtrado.values),
             startangle=90,
             colors=cores_pizza,
-            textprops={'fontsize': 12, 'fontweight': 'bold', 'color': 'black'}
+            textprops={'fontsize': 12, 'fontweight': 'bold', 'color': 'black'},
+            wedgeprops={'edgecolor': 'white', 'linewidth': 2}  # Adicionando a linha branca entre as fatias
         )
-        
+                
         # Alterar a cor e a formatação dos textos dentro do gráfico de pizza
         for autotext in autotexts:
             autotext.set_color("white")
             autotext.set_fontweight("bold")
         
         # Adicionar título formatado ao gráfico de pizza
-        ax.set_title(f"Distribuição dos valores 'Negativo' e 'Positivo' - Mês {mes_desejado}",
-                     fontname="Arial", fontsize=14, fontweight='bold', pad=20)
+        ax.set_title(f"Distribuição dos valores 'Negativo' e 'Positivo' - {num_mes[mes_desejado]}",
+                     fontname="Arial", fontsize=16, fontweight='bold', pad=20)
         
         # Ajustar o layout e salvar o gráfico no PDF
         plt.tight_layout()
@@ -72,8 +76,10 @@ else:
                         ha='center', fontsize=12, fontweight='bold', fontname="Arial", color='black')
             
             # Adicionar título e rótulos formatados
-            ax.set_title(titulo, fontname="Arial", fontsize=14, fontweight='bold', pad=20)
+            ax.set_title(titulo, fontname="Arial", fontsize=16, fontweight='bold', pad=20)
             ax.set_xlabel(xlabel, fontname="Arial", fontsize=12)
+            
+            ax.set_xlabel("")  # Remove o texto "Tema" ou "Jornal" abaixo do gráfico
             
             # Rotacionar os nomes das categorias para melhor visualização
             ax.xaxis.set_tick_params(rotation=45)
@@ -96,11 +102,11 @@ else:
         
         # Criar gráficos de barras para os temas e jornais mais mencionados
         criar_grafico_barra(df_mes['Tema'].value_counts(),
-                            f"Temas mais mencionados - Mês {mes_desejado}",
+                            f"Temas mais mencionados - {num_mes[mes_desejado]}",
                             "Tema")
         
         criar_grafico_barra(df_mes['Jornal'].value_counts(),
-                            f"Jornais mais mencionados - Mês {mes_desejado}",
+                            f"Jornais que mais mencionaram - {num_mes[mes_desejado]}",
                             "Jornal")
         
         # Criar uma figura com os três gráficos juntos
@@ -110,7 +116,8 @@ else:
         wedges, texts, autotexts = axs[0].pie(
             contagem_teor_filtrado.values, labels=contagem_teor_filtrado.index,
             autopct=lambda pct: func(pct, contagem_teor_filtrado.values), startangle=90,
-            colors=cores_pizza, textprops={'fontsize': 10, 'fontweight': 'bold', 'color': 'black'}
+            colors=cores_pizza, textprops={'fontsize': 10, 'fontweight': 'bold', 'color': 'black'},
+            wedgeprops={'edgecolor': 'white', 'linewidth': 2}
         )
         
         for autotext in autotexts:
@@ -139,6 +146,7 @@ else:
             ax.spines['right'].set_visible(False)
             ax.spines['left'].set_visible(False)
             ax.spines['bottom'].set_visible(False)
+            ax.set_xlabel("")  # Remove o texto "Tema" ou "Jornal" abaixo do gráfico
         
         plt.tight_layout()
         pdf.savefig(fig, bbox_inches='tight')
