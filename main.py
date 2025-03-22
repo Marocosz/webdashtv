@@ -156,6 +156,7 @@ def gerar_dashboard_pdf():
     # Verificar se há dados para o mês especificado
     if df_mes.empty:
         print(f"Não há dados para o mês {mes_desejado}.")
+        return jsonify({"erro": f"Não há dados disponíveis para o mês {mes_desejado}."}), 400
     else:
         # Criar um arquivo PDF para salvar os gráficos
         with PdfPages('graficos.pdf') as pdf:

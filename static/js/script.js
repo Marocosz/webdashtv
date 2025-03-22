@@ -44,38 +44,53 @@ function gerarTextoMensagem() {
     .catch(error => console.error('Erro ao gerar texto:', error));
 }
 
-function gerarDashboard() {
-    // Previne o comportamento padrão do formulário
-    event.preventDefault();
+function gerarDashboard(event) {
+    // Garante que o evento está sendo tratado corretamente
+    if (event) event.preventDefault();
 
-    // Abre o modal para o mês
+    // Captura os elementos do DOM
     const mesSelecionado = document.getElementById("mesSelecionado").value;
+    const mensagemErro = document.getElementById("mensagemErro");
 
-    // Faça a requisição para o backend
+    // Limpa mensagens antigas
+    mensagemErro.style.display = "none";
+    mensagemErro.textContent = "";
+
+    // Verifica se o mês foi selecionado
+    if (!mesSelecionado) {
+        mensagemErro.textContent = "Selecione um mês antes de gerar o dashboard!";
+        mensagemErro.style.display = "block";
+        return;
+    }
+
+    // Faz a requisição para o backend
     fetch('/gerar_dashboard_pdf', {
-        method: 'POST', // ou 'GET' dependendo do seu backend
+        method: 'POST',
         body: JSON.stringify({ mes: mesSelecionado }),
-        headers: {
-            'Content-Type': 'application/json'
-        }
+        headers: { 'Content-Type': 'application/json' }
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error('Erro ao gerar dashboard');
+            return response.json().then(data => { 
+                throw new Error(data.erro || 'Erro ao gerar dashboard'); 
+            });
         }
-        return response.blob(); // Se for um PDF, vai ser tratado como um Blob
+        return response.blob(); // Trata a resposta como um Blob (PDF)
     })
     .then(blob => {
-        // Cria um link para o download
+        // Criar link para download do PDF
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'dashboard.pdf'; // Nome do arquivo a ser baixado
+        a.download = 'dashboard.pdf';
         document.body.appendChild(a);
         a.click();
-        a.remove();  // Remove o link da página
+        document.body.removeChild(a);
     })
-    .catch(error => console.error('Erro ao gerar o dashboard:', error));
+    .catch(error => {
+        mensagemErro.textContent = error.message;
+        mensagemErro.style.display = "block";
+    });
 }
 
 function baixarExcel() {
