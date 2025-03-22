@@ -45,18 +45,37 @@ function gerarTextoMensagem() {
 }
 
 function gerarDashboard() {
-    fetch('/generate_dashboard')
-    .then(response => response.blob())
+    // Previne o comportamento padrão do formulário
+    event.preventDefault();
+
+    // Abre o modal para o mês
+    const mesSelecionado = document.getElementById("mesSelecionado").value;
+
+    // Faça a requisição para o backend
+    fetch('/gerar_dashboard_pdf', {
+        method: 'POST', // ou 'GET' dependendo do seu backend
+        body: JSON.stringify({ mes: mesSelecionado }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erro ao gerar dashboard');
+        }
+        return response.blob(); // Se for um PDF, vai ser tratado como um Blob
+    })
     .then(blob => {
+        // Cria um link para o download
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'dashboard.pdf';
+        a.download = 'dashboard.pdf'; // Nome do arquivo a ser baixado
         document.body.appendChild(a);
         a.click();
-        a.remove();
+        a.remove();  // Remove o link da página
     })
-    .catch(error => console.error('Erro ao gerar dashboard:', error));
+    .catch(error => console.error('Erro ao gerar o dashboard:', error));
 }
 
 function baixarExcel() {
@@ -162,7 +181,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const dashboardModal = document.getElementById("dashboard-modal");
     const openDashboardButton = document.getElementById("dashboard-button");
     const confirmDashboardButton = document.getElementById("confirm-dashboard");
-    const mesSelecionado = document.getElementById("mesSelecionado");
+    const mesSelecionadoInput = document.getElementById("mesSelecionado");
+    const confirmGerarDashButton = document.getElementById("confirm-dashboard");
     
     
 
@@ -180,13 +200,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Capturar seleção do mês e fechar modal
     confirmDashboardButton.addEventListener("click", function () {
-        if (!mesSelecionado.value) {
+        if (!mesSelecionadoInput.value) {
             alert("Por favor, selecione um mês.");
             return;
         }
 
-        alert("Dashboard para " + mesSelecionado.value + " será gerado!"); // Substitua por sua lógica real
+        alert("Dashboard para " + mesSelecionadoInput.value + " será gerado!"); // Substitua por sua lógica real
         dashboardModal.style.display = "none"; // Fechar modal após escolha
+    });
+
+    confirmDashboardButton.addEventListener("click", function() {
+        let numMes = parseInt(mesSelecionadoInput.value);
+        print()
+        fetch('/delete_last_rowgerar_dashboard_pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mesSelecionado: numMes })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            modal.style.display = "none"; // Fechar modal após excluir
+        })
+
     });
 });
 

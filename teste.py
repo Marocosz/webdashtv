@@ -12,8 +12,9 @@ df['DataHora'] = pd.to_datetime(df['DataHora'])
 num_mes = {1:'Janeiro', 2:'Fevereiro', 3:'Março', 4:'Abril', 5:'Maio', 
            6:'Junho', 7:'Julho', 8:'Agosto', 9:'Setembro', 10:'Outubro', 11:'Novembro', 12:'Dezembro'}
 
-mes_desejado = 3  # Alterar para o mês desejado
+mes_desejado = num_mes['Janeiro']  # Alterar para o mês desejado
 df_mes = df[df['DataHora'].dt.month == mes_desejado]
+print(df_mes)
 
 # Verificar se há dados para o mês especificado
 if df_mes.empty:

@@ -87,8 +87,8 @@
     <!-- Modal para excluir linhas -->
     <div id="delete-modal" class="modal">
         <div class="modal-content">
-            <h2>Excluir Últimas Linhas</h2>
-            <label for="numLinhas">Quantas linhas deseja excluir?</label>
+            <h2>Quantas linhas deseja excluir?</h2>
+            <label for="numLinhas"></label>
             <div class="counter-container">
                 <button id="decrease">−</button>
                 <input type="number" id="numLinhas" value="1" min="1">
@@ -118,7 +118,7 @@
                     <option value="12">Dezembro</option>
                   </select>
             </div>
-            <button id="confirm-dashboard">Gerar Dashboard</button>
+            <button id="dashboard-button" type="button" onclick="gerarDashboard()">Gerar Dashboard Mensal</button>
         </div>
     </div>
 
