@@ -5,9 +5,12 @@ import os
 from datetime import datetime
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+from flask_cors import CORS
 
 # Inicializando o aplicativo Flask
 app = Flask(__name__, template_folder='templates')
+
+CORS(app)  # Habilita CORS para evitar bloqueios
 
 # Dicionário com os canais e seus respectivos jornais
 jornais = {
@@ -117,7 +120,7 @@ def gerar_texto_mensagem():
             texto = row['Texto']
             
             # Define o ícone baseado no teor da notícia
-            icone_teor = "🔴" if teor.lower() == "negativa" else "⚪" if teor.lower() == "neutra" else "🟢"
+            icone_teor = "🔴" if teor.lower() == "negativo" else "⚪" if teor.lower() == "neutro" else "🟢"
             
             texto_mensagem += f"⏰*{hora}*\n"
             texto_mensagem += f"*{icone_teor}{teor}*\n"
@@ -333,4 +336,4 @@ def delete_last_rows():
 
 # Inicia o servidor Flask no modo de depuração
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
