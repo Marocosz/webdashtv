@@ -11,8 +11,12 @@ body {
     align-items: center;
     min-height: 100vh;
     text-align: center;
-    background-color: #f4f4f4;
     padding: 20px;
+    background-color: #1e1e1e; /* Cor de fundo personalizada */
+    background-image: url('../Wallpaper\ InTecMídia.jpg');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: contain;
 }
 
 .container {
