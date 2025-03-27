@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from flask_cors import CORS
 
+os.system("apt-get update && apt-get install -y fonts-liberation ttf-mscorefonts-installer")
 # Inicializando o aplicativo Flask
 app = Flask(__name__, template_folder='templates')
 
