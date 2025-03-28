@@ -45,16 +45,23 @@ def git_commit_and_push():
         # Mudar para o diretório do repositório
         os.chdir(REPO_DIR)
 
-        # Verificar a branch atual
+        # Verificar se é um repositório Git
+        if not os.path.exists(os.path.join(REPO_DIR, ".git")):
+            print("⚠️ Diretório não é um repositório Git. Inicializando...")
+            subprocess.run(["git", "init"], check=True)
+            repo_url = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/{GITHUB_REPO}.git"
+            subprocess.run(["git", "remote", "add", "origin", repo_url], check=True)
+
+        # Verificar a branch atual e mudar para 'main' se necessário
         branch_output = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True)
         current_branch = branch_output.stdout.strip()
 
         if current_branch != "main":
             print(f"📌 Atualmente na branch '{current_branch}', mudando para 'main'...")
-            subprocess.run(["git", "checkout", "main"], check=True)
+            subprocess.run(["git", "checkout", "-b", "main"], check=True)
 
         # Atualizar o repositório para evitar conflitos
-        subprocess.run(["git", "pull", "origin", "main"], check=True)
+        subprocess.run(["git", "pull", "origin", "main", "--allow-unrelated-histories"], check=True)
 
         # Adicionar mudanças no Excel
         subprocess.run(["git", "add", "dados.xlsx"], check=True)
@@ -64,11 +71,14 @@ def git_commit_and_push():
 
         # Fazer push usando autenticação com token
         repo_url = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/{GITHUB_REPO}.git"
-        subprocess.run(["git", "push", "--force", repo_url, "main"], check=True)
+        subprocess.run(["git", "push", "--set-upstream", "origin", "main", "--force"], check=True)
 
         print("✅ Arquivo atualizado e push realizado com sucesso!")
+
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Erro ao executar comando Git: {e}")
     except Exception as e:
-        print(f"❌ Erro ao fazer commit e push: {e}")
+        print(f"❌ Erro inesperado: {e}")
 
 # Função que verifica se o arquivo Excel já existe, se não, cria um novo com a estrutura básica
 def verificar_arquivo():
