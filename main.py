@@ -52,13 +52,16 @@ def git_commit_and_push():
             repo_url = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/{GITHUB_REPO}.git"
             subprocess.run(["git", "remote", "add", "origin", repo_url], check=True)
 
-        # Verificar a branch atual e mudar para 'main' se necessário
+        # Verificar a branch atual
         branch_output = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True)
         current_branch = branch_output.stdout.strip()
 
-        if current_branch != "main":
+        if current_branch == "HEAD":
+            print("📌 O repositório está em detached HEAD. Tentando mudar para a branch 'main'...")
+            subprocess.run(["git", "checkout", "main"], check=True)
+        elif current_branch != "main":
             print(f"📌 Atualmente na branch '{current_branch}', mudando para 'main'...")
-            subprocess.run(["git", "checkout", "-b", "main"], check=True)
+            subprocess.run(["git", "checkout", "main"], check=True)
 
         # Atualizar o repositório para evitar conflitos
         subprocess.run(["git", "pull", "origin", "main", "--allow-unrelated-histories"], check=True)
@@ -79,7 +82,7 @@ def git_commit_and_push():
         print(f"❌ Erro ao executar comando Git: {e}")
     except Exception as e:
         print(f"❌ Erro inesperado: {e}")
-
+        
 # Função que verifica se o arquivo Excel já existe, se não, cria um novo com a estrutura básica
 def verificar_arquivo():
     # Se o arquivo não existir, cria um novo DataFrame e salva como Excel
