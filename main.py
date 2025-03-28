@@ -30,6 +30,9 @@ GITHUB_USERNAME = "Marocosz"
 GITHUB_REPO = "webdashtv"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
+print('--------------------------------------------------------------')
+print("Diretório atual:", os.getcwd())
+
 # Caminho do repositório dentro do Render
 REPO_DIR = "/app"
 
