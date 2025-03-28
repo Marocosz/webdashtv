@@ -34,7 +34,7 @@ print('--------------------------------------------------------------')
 print("Diretório atual:", os.getcwd())
 
 # Caminho do repositório dentro do Render
-REPO_DIR = "/app"
+REPO_DIR = os.getcwd()
 
 
 def git_commit_and_push():
