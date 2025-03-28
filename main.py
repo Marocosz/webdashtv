@@ -75,15 +75,24 @@ def verificar_arquivo():
 
 @app.route('/gerar_texto_mensagem', methods=['POST'])
 def gerar_texto_mensagem():
-    # Obtém os dados enviados pelo frontend (data escolhida)
+    # Obtém os dados enviados pelo frontend (data escolhida e período)
     data_recebida = request.json.get('data')  # Obtém a data do corpo da requisição
+    periodo_recebido = request.json.get('periodo')  # Obtém o período do corpo da requisição
 
+    # Definindo os jornais por período
     jornais_manha = ["Bom Dia Brasil", "Bom Dia Rio", "RJ No Ar TV Record"]
-    jornais_tarde = ["Balanço Geral", "RJ TV 1", ]
+    jornais_tarde = ["Balanço Geral", "RJ TV 1"]
     jornais_noite = ["RJ Record", "RJ TV 2"]
-    
+
     if not data_recebida:
         return jsonify({"message": "Data não fornecida."})
+
+    if not periodo_recebido:
+        return jsonify({"message": "Período não fornecido."})
+
+    # Verifica se o período é válido
+    if periodo_recebido not in ['Manha', 'Tarde', 'Noite']:
+        return jsonify({"message": "Período inválido. Escolha entre 'Manhã', 'Tarde' ou 'Noite'."})
 
     # Verifica se a data fornecida está no formato correto
     try:
@@ -111,31 +120,39 @@ def gerar_texto_mensagem():
     if df_dia.empty:
         return jsonify({"message": f"Nenhum dado para a data {data_escolhida.strftime('%d-%m-%Y')}."})
 
-    # Geração do texto
-    texto_mensagem = f"*CLIPPING | {data_escolhida.strftime('%d-%m-%y')}*\n\n\n\n"
+    # Determina os jornais de acordo com o período escolhido
+    if periodo_recebido == 'Manha':
+        jornais_periodo = jornais_manha
+    elif periodo_recebido == 'Tarde':
+        jornais_periodo = jornais_tarde
+    else:  # periodo_recebido == 'Noite'
+        jornais_periodo = jornais_noite
+
+    # Geração do texto com o título modificando de acordo com o período
+    texto_mensagem = f"*CLIPPING | {data_escolhida.strftime('%d-%m-%y')} - {periodo_recebido}*\n\n\n\n"
     
-    # Agrupa as notícias por jornal
-    jornais = df_dia['Jornal'].unique()
-    for jornal in jornais:
-        texto_mensagem += f"*📺{jornal}*\n\n"
-        
-        df_jornal = df_dia[df_dia['Jornal'] == jornal]
-        for _, row in df_jornal.iterrows():
-            hora = row['DataHora'].strftime('%H:%M')
-            teor = row['Teor']
-            nota = row['Nota']
-            texto = row['Texto']
+    # Agrupa as notícias por jornal e filtra apenas os jornais do período
+    for jornal in jornais_periodo:
+        if jornal in df_dia['Jornal'].values:
+            texto_mensagem += f"*📺{jornal}*\n\n"
             
-            # Define o ícone baseado no teor da notícia
-            icone_teor = "🔴" if teor.lower() == "negativo" else "⚪" if teor.lower() == "neutro" else "🟢"
+            df_jornal = df_dia[df_dia['Jornal'] == jornal]
+            for _, row in df_jornal.iterrows():
+                hora = row['DataHora'].strftime('%H:%M')
+                teor = row['Teor']
+                nota = row['Nota']
+                texto = row['Texto']
+                
+                # Define o ícone baseado no teor da notícia
+                icone_teor = "🔴" if teor.lower() == "negativo" else "⚪" if teor.lower() == "neutro" else "🟢"
+                
+                texto_mensagem += f"⏰*{hora}*\n"
+                texto_mensagem += f"*{icone_teor}{teor}*\n"
+                texto_mensagem += f"*{nota}*\n"
+                texto_mensagem += f"ℹ️{texto}\n\n"
             
-            texto_mensagem += f"⏰*{hora}*\n"
-            texto_mensagem += f"*{icone_teor}{teor}*\n"
-            texto_mensagem += f"*{nota}*\n"
-            texto_mensagem += f"ℹ️{texto}\n\n"
-            
-        texto_mensagem += f"-----------------------------------\n\n"
-        
+            texto_mensagem += f"-----------------------------------\n\n"
+    
     texto_mensagem += f"https://clipping.intecmidia.com.br/index.php/apps/files/files/596?dir=/1-RECORTES%20DO%20DIA\n"
 
     # Retorna o texto gerado para o frontend

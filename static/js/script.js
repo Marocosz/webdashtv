@@ -18,6 +18,21 @@ function enviarDados(event) {
     .catch(error => console.error('Erro:', error));
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+    // Previne o envio para todos os outros botões
+    const buttons = document.querySelectorAll("button");
+
+    buttons.forEach(button => {
+        button.addEventListener("click", function(event) {
+            // Se o botão não for o de "Adicionar Dados", evita o envio
+            if (event.target.id !== "add-data") {
+                event.preventDefault();
+            }
+        });
+    });
+});
+
+
 function gerarTextoMensagem() {
     const dataEscolhida = document.getElementById("dataEscolhida").value;
     const periodoEscolhido = document.getElementById("periodo").value; // Captura o valor do período
@@ -27,6 +42,7 @@ function gerarTextoMensagem() {
         return;
     }
     
+    // Verifica se o período foi escolhido apenas quando for "Gerar Texto Mensagem"
     if (!periodoEscolhido) {
         alert('Por favor, escolha um período do dia!');
         return;
