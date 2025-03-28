@@ -48,11 +48,12 @@ def process():
     tema = request.form['tema']
     datahora = request.form['datahora']
     teor = request.form['teor']
+    nota = request.form['nota']
     texto = request.form['texto']
     
     # Criando um novo DataFrame com os dados recebidos
-    novo_dado = pd.DataFrame([[canal, jornal, tema, datahora, teor, texto]],
-                              columns=["Canal", "Jornal", "Tema", "DataHora", "Teor", "Texto"])
+    novo_dado = pd.DataFrame([[canal, jornal, tema, datahora, teor, nota, texto]],
+                              columns=["Canal", "Jornal", "Tema", "DataHora", "Teor", "Nota", "Texto"])
     
     # Carregando o arquivo Excel existente e concatenando o novo dado
     df = pd.read_excel(EXCEL_FILE)
@@ -76,6 +77,10 @@ def verificar_arquivo():
 def gerar_texto_mensagem():
     # Obtém os dados enviados pelo frontend (data escolhida)
     data_recebida = request.json.get('data')  # Obtém a data do corpo da requisição
+
+    jornais_manha = ["Bom Dia Brasil", "Bom Dia Rio", "RJ No Ar TV Record"]
+    jornais_tarde = ["Balanço Geral", "RJ TV 1", ]
+    jornais_noite = ["RJ Record", "RJ TV 2"]
     
     if not data_recebida:
         return jsonify({"message": "Data não fornecida."})

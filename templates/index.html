@@ -58,6 +58,13 @@
                 <option value="Positivo">Positivo</option>
             </select>
 
+            <label for="nota">Nota</label>
+            <select id="nota" name="nota" required>
+                <option value="">Escolha se há nota</option>
+                <option value="Com Nota">Com Nota</option>
+                <option value="Sem Nota">Sem Nota</option>
+            </select>
+
             <label for="texto">Texto da Matéria</label>
             <textarea name="texto" rows="3" required></textarea>
 
@@ -75,7 +82,7 @@
                     
                     <button onclick="gerarTextoMensagem()" class="gerar-texto-mensagem">Gerar Texto Mensagem</button>
                 </div>
-            
+
                 <div class="button-row">
                     <button id="dashboard-button">Gerar Dashboard Mensal</button>
                     <button type="button" onclick="baixarExcel()">Baixar Excel</button>
