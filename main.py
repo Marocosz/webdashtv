@@ -30,6 +30,9 @@ GITHUB_USERNAME = "Marocosz"
 GITHUB_REPO = "webdashtv"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
+subprocess.run(['git', 'config', 'user.name', 'Marocosz'], check=True)
+subprocess.run(['git', 'config', 'user.email', 'ditanixplayer@gmail.com'], check=True)
+
 print('--------------------------------------------------------------')
 print("Diretório atual:", os.getcwd())
 
