@@ -245,3 +245,11 @@ label[for="dataEscolhida"] {
     font-size: 20px;
     cursor: pointer;
 }
+
+.date-container select {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    width: 120px;  /* Ajusta a largura do select para combinar com o input de data */
+}

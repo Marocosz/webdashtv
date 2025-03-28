@@ -123,6 +123,7 @@ def gerar_texto_mensagem():
         for _, row in df_jornal.iterrows():
             hora = row['DataHora'].strftime('%H:%M')
             teor = row['Teor']
+            nota = row['Nota']
             texto = row['Texto']
             
             # Define o ícone baseado no teor da notícia
@@ -130,6 +131,7 @@ def gerar_texto_mensagem():
             
             texto_mensagem += f"⏰*{hora}*\n"
             texto_mensagem += f"*{icone_teor}{teor}*\n"
+            texto_mensagem += f"*{nota}*\n"
             texto_mensagem += f"ℹ️{texto}\n\n"
             
         texto_mensagem += f"-----------------------------------\n\n"

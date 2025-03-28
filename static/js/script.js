@@ -20,15 +20,22 @@ function enviarDados(event) {
 
 function gerarTextoMensagem() {
     const dataEscolhida = document.getElementById("dataEscolhida").value;
+    const periodoEscolhido = document.getElementById("periodo").value; // Captura o valor do período
+
     if (!dataEscolhida) {
         alert('Por favor, escolha uma data!');
+        return;
+    }
+    
+    if (!periodoEscolhido) {
+        alert('Por favor, escolha um período do dia!');
         return;
     }
 
     fetch('/gerar_texto_mensagem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: dataEscolhida })
+        body: JSON.stringify({ data: dataEscolhida, periodo: periodoEscolhido })
     })
     .then(response => response.json())
     .then(data => {

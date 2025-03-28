@@ -79,6 +79,17 @@
                         <label for="dataEscolhida" class="label">Data</label>
                         <input type="date" id="dataEscolhida" name="dataEscolhida">
                     </div>
+
+                    <!-- Novo seletor para escolher o período do dia (Manhã, Tarde ou Noite) -->
+                    <div class="date-container">
+                        <label for="periodo" class="label">Período</label>
+                        <select id="periodo" name="periodo" required>
+                            <option value="">Escolha o Período</option>
+                            <option value="Manha">Manhã</option>
+                            <option value="Tarde">Tarde</option>
+                            <option value="Noite">Noite</option>
+                        </select>
+                    </div>
                     
                     <button onclick="gerarTextoMensagem()" class="gerar-texto-mensagem">Gerar Texto Mensagem</button>
                 </div>
