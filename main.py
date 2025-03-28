@@ -6,6 +6,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from flask_cors import CORS
+import subprocess
 
 os.system("apt-get update && apt-get install -y fonts-liberation ttf-mscorefonts-installer")
 # Inicializando o aplicativo Flask
@@ -24,6 +25,34 @@ jornais = {
 EXCEL_FILE = "dados.xlsx"
 PDF_FILE = "dashboard.pdf"
 
+# Configuração do repositório
+GITHUB_USERNAME = "Marocosz"
+GITHUB_REPO = "webdashtv"
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+
+# Caminho do repositório dentro do Render
+REPO_DIR = "/app"
+
+
+def git_commit_and_push():
+    try:
+        # Mudar para o diretório do repositório
+        os.chdir(REPO_DIR)
+
+        # Adicionar mudanças no Excel
+        subprocess.run(["git", "add", "dados.xlsx"], check=True)
+
+        # Criar commit com mensagem automática
+        subprocess.run(["git", "commit", "-m", "Atualização automática do arquivo Excel"], check=True)
+
+        # Fazer push usando autenticação com token
+        repo_url = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/{GITHUB_REPO}.git"
+        subprocess.run(["git", "push", repo_url, "main"], check=True)
+
+        print("✅ Arquivo atualizado e push realizado com sucesso!")
+    except Exception as e:
+        print(f"❌ Erro ao fazer commit e push: {e}")
+
 # Função que verifica se o arquivo Excel já existe, se não, cria um novo com a estrutura básica
 def verificar_arquivo():
     # Se o arquivo não existir, cria um novo DataFrame e salva como Excel
@@ -34,6 +63,7 @@ def verificar_arquivo():
 # Rota para a página inicial, onde o usuário pode preencher o formulário
 @app.route('/')
 def index():
+    
     return render_template("index.html")  # Renderiza o arquivo HTML (Index.html) para o usuário
 
 # Rota para processar os dados enviados pelo formulário
@@ -61,6 +91,7 @@ def process():
     df.to_excel(EXCEL_FILE, index=False)  # Salva o DataFrame atualizado no arquivo Excel
     
     # Retorna uma resposta JSON confirmando que os dados foram adicionados
+    git_commit_and_push()
     return jsonify({"message": "Dados adicionados com sucesso!"})
 
 # Rota para fazer o download do arquivo Excel
@@ -68,10 +99,6 @@ def process():
 def download_excel():
     return send_file(EXCEL_FILE, as_attachment=True, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", download_name="dados.xlsx")
 
-# Função para verificar a existência do arquivo (exemplo de implementação)
-def verificar_arquivo():
-    # Verifica se o arquivo existe e pode ser lido
-    pass  # Implementar a lógica de verificação
 
 @app.route('/gerar_texto_mensagem', methods=['POST'])
 def gerar_texto_mensagem():
@@ -354,6 +381,7 @@ def delete_last_rows():
         # Salvar o novo arquivo
         df.to_excel(EXCEL_FILE, index=False)
 
+        git_commit_and_push()
         return jsonify({"message": f"{num_linhas} linhas excluídas com sucesso!"})
 
     except Exception as e:
