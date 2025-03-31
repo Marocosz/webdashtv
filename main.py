@@ -16,7 +16,7 @@ CORS(app)  # Habilita CORS para evitar bloqueios
 
 # Dicionário com os canais e seus respectivos jornais
 jornais = {
-    "Globo": ["Inter TV Rural", "Bom Dia Rio", "Bom Dia Brasil", "RJ TV 1", "RJ TV 2"],
+    "Globo": ["Inter TV Rural", "Bom Dia Inter", "Bom Dia Rio", "Bom Dia Brasil", "RJ TV 1", "RJ TV 2"],
     "Record": ["Balanço Geral", "RJ No Ar TV Record", "RJ Record"]
 }
 
@@ -123,12 +123,11 @@ def process():
     tema = request.form['tema']
     datahora = request.form['datahora']
     teor = request.form['teor']
-    nota = request.form['nota']
     texto = request.form['texto']
     
     # Criando um novo DataFrame com os dados recebidos
-    novo_dado = pd.DataFrame([[canal, jornal, tema, datahora, teor, nota, texto]],
-                              columns=["Canal", "Jornal", "Tema", "DataHora", "Teor", "Nota", "Texto"])
+    novo_dado = pd.DataFrame([[canal, jornal, tema, datahora, teor, texto]],
+                              columns=["Canal", "Jornal", "Tema", "DataHora", "Teor", "Texto"])
     
     # Carregando o arquivo Excel existente e concatenando o novo dado
     df = pd.read_excel(EXCEL_FILE)
@@ -152,7 +151,7 @@ def gerar_texto_mensagem():
     periodo_recebido = request.json.get('periodo')  # Obtém o período do corpo da requisição
 
     # Definindo os jornais por período
-    jornais_manha = ["Bom Dia Brasil", "Bom Dia Rio", "RJ No Ar TV Record"]
+    jornais_manha = ["Bom Dia Brasil", "Bom Dia Inter", "Bom Dia Rio", "RJ No Ar TV Record"]
     jornais_tarde = ["Balanço Geral", "RJ TV 1"]
     jornais_noite = ["RJ Record", "RJ TV 2"]
 
@@ -212,7 +211,6 @@ def gerar_texto_mensagem():
             for _, row in df_jornal.iterrows():
                 hora = row['DataHora'].strftime('%H:%M')
                 teor = row['Teor']
-                nota = row['Nota']
                 texto = row['Texto']
                 
                 # Define o ícone baseado no teor da notícia
@@ -220,7 +218,6 @@ def gerar_texto_mensagem():
                 
                 texto_mensagem += f"⏰*{hora}*\n"
                 texto_mensagem += f"*{icone_teor}{teor}*\n"
-                texto_mensagem += f"*{nota}*\n"
                 texto_mensagem += f"ℹ️{texto}\n\n"
             
             texto_mensagem += f"-----------------------------------\n\n"
