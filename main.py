@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from flask_cors import CORS
 import subprocess
+import atexit
 
 os.system("apt-get update && apt-get install -y fonts-liberation ttf-mscorefonts-installer")
 # Inicializando o aplicativo Flask
@@ -39,6 +40,8 @@ print("Diretório atual:", os.getcwd())
 # Caminho do repositório dentro do Render
 REPO_DIR = os.getcwd()
 
+def commit_before_exit():
+    git_commit_and_push()
 
 def git_commit_and_push():
     try:
@@ -135,7 +138,7 @@ def process():
     df.to_excel(EXCEL_FILE, index=False)  # Salva o DataFrame atualizado no arquivo Excel
     
     # Retorna uma resposta JSON confirmando que os dados foram adicionados
-    git_commit_and_push()
+
     return jsonify({"message": "Dados adicionados com sucesso!"})
 
 # Rota para fazer o download do arquivo Excel
@@ -423,11 +426,11 @@ def delete_last_rows():
         # Salvar o novo arquivo
         df.to_excel(EXCEL_FILE, index=False)
 
-        git_commit_and_push()
         return jsonify({"message": f"{num_linhas} linhas excluídas com sucesso!"})
 
     except Exception as e:
         return jsonify({"message": f"Erro ao excluir linhas: {str(e)}"}), 500
+    
 
 # Inicia o servidor Flask no modo de depuração
 if __name__ == '__main__':
