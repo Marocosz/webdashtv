@@ -40,9 +40,6 @@ print("Diretório atual:", os.getcwd())
 # Caminho do repositório dentro do Render
 REPO_DIR = os.getcwd()
 
-def commit_before_exit():
-    git_commit_and_push()
-
 def git_commit_and_push():
     try:
         os.chdir(REPO_DIR)
