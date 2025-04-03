@@ -151,9 +151,9 @@ def gerar_texto_mensagem():
     periodo_recebido = request.json.get('periodo')  # Obtém o período do corpo da requisição
 
     # Definindo os jornais por período
-    jornais_manha = ["Bom Dia Brasil", "Bom Dia Inter", "Bom Dia Rio", "RJ No Ar TV Record"]
-    jornais_tarde = ["Balanço Geral", "RJ TV 1"]
-    jornais_noite = ["RJ Record", "RJ TV 2"]
+    jornais_manha = ["Bom Dia Brasil", "Bom Dia Rio", "Bom Dia Inter", "RJ No Ar TV Record"]
+    jornais_tarde = ["RJ TV 1", "Balanço Geral"]
+    jornais_noite = ["RJ TV 2", "RJ Record"]
 
     if not data_recebida:
         return jsonify({"message": "Data não fornecida."})
