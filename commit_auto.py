@@ -1,81 +1,67 @@
 import time
-import subprocess
 import os
-import sys
+import base64
+import requests
+from datetime import datetime
 
+# Configurações
 GITHUB_USERNAME = "Marocosz"
 GITHUB_REPO = "webdashtv"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-REPO_DIR = os.getcwd()
+FILE_PATH = "dados.xlsx"
+BRANCH = "main"
 
-print(f"📁 Diretório atual: {REPO_DIR}")
-print(GITHUB_TOKEN)
+# Endpoint da API
+API_URL = f"https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/{FILE_PATH}"
 
-# Verifica se o token está disponível
-if not GITHUB_TOKEN:
-    print("❌ ERRO: GITHUB_TOKEN não está definido nas variáveis de ambiente.")
-    sys.exit(1)
+# Tempo entre envios (em segundos)
+INTERVALO = 300  # 5 minutos
 
-print("✅ Script de commit automático iniciado.")
-print(f"📁 Diretório atual: {REPO_DIR}")
+def log(msg):
+    hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"[{hora}] {msg}")
 
-while True:
-    time.sleep(300)  # Executa a cada ~5 minutos
+def upload_excel():
+    if not GITHUB_TOKEN:
+        log("❌ ERRO: GITHUB_TOKEN não está definido nas variáveis de ambiente.")
+        return
 
     try:
-        os.chdir(REPO_DIR)
+        with open(FILE_PATH, "rb") as f:
+            content = f.read()
+        encoded = base64.b64encode(content).decode("utf-8")
 
-        # Verifica se é um repositório Git
-        if not os.path.exists(os.path.join(REPO_DIR, ".git")):
-            print("⚠️ Diretório não é um repositório Git. Inicializando...")
-            subprocess.run(["git", "init"], check=True)
+        # Tenta obter o SHA do arquivo atual no GitHub
+        r_get = requests.get(API_URL, headers={
+            "Authorization": f"Bearer {GITHUB_TOKEN}",
+            "Accept": "application/vnd.github+json"
+        })
+        sha = r_get.json().get("sha") if r_get.status_code == 200 else None
 
-        # Configura nome e e-mail globalmente
-        subprocess.run(["git", "config", "--global", "user.name", GITHUB_USERNAME], check=True)
-        subprocess.run(["git", "config", "--global", "user.email", f"{GITHUB_USERNAME}@users.noreply.github.com"], check=True)
+        payload = {
+            "message": f"Atualização automática: {datetime.now().isoformat()}",
+            "content": encoded,
+            "branch": BRANCH
+        }
+        if sha:
+            payload["sha"] = sha
 
-        # Verifica se já existe remote
-        repo_url = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/{GITHUB_REPO}.git"
-        remote_check = subprocess.run(["git", "remote", "-v"], capture_output=True, text=True)
+        r_put = requests.put(API_URL, headers={
+            "Authorization": f"Bearer {GITHUB_TOKEN}",
+            "Accept": "application/vnd.github+json"
+        }, json=payload)
 
-        if "origin" not in remote_check.stdout:
-            print("🔗 Adicionando repositório remoto...")
-            subprocess.run(["git", "remote", "add", "origin", repo_url], check=True)
+        if r_put.status_code in [200, 201]:
+            log("✅ Excel enviado com sucesso para o GitHub!")
         else:
-            print("🔄 Atualizando URL do repositório remoto...")
-            subprocess.run(["git", "remote", "set-url", "origin", repo_url], check=True)
+            log(f"❌ Erro no envio: {r_put.status_code} - {r_put.text}")
 
-        # Busca branches
-        subprocess.run(["git", "fetch", "origin"], check=True)
-
-        # Verifica a branch atual
-        branch_output = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True)
-        current_branch = branch_output.stdout.strip()
-
-        if current_branch == "HEAD":
-            print("📌 Repositório está em detached HEAD. Criando/mudando para 'main'...")
-            subprocess.run(["git", "checkout", "-B", "main"], check=True)
-        elif current_branch != "main":
-            print(f"📌 Atualmente na branch '{current_branch}', mudando para 'main'...")
-            subprocess.run(["git", "checkout", "main"], check=True)
-
-        # Puxa últimas mudanças (ignora histórico diferente)
-        subprocess.run(["git", "pull", "origin", "main", "--allow-unrelated-histories"], check=True)
-
-        # Adiciona somente se houver mudanças
-        subprocess.run(["git", "add", "dados.xlsx"], check=True)
-        diff_check = subprocess.run(["git", "diff", "--cached", "--quiet"])
-        if diff_check.returncode == 0:
-            print("🟡 Nenhuma mudança detectada no arquivo. Aguardando próximo ciclo...")
-            continue
-
-        # Commit e push
-        subprocess.run(["git", "commit", "-m", "Atualização automática do arquivo Excel"], check=True)
-        subprocess.run(["git", "push", "--set-upstream", "origin", "main", "--force"], check=True)
-
-        print("✅ Arquivo atualizado e push realizado com sucesso!")
-
-    except subprocess.CalledProcessError as e:
-        print(f"❌ Erro ao executar comando Git: {e}")
     except Exception as e:
-        print(f"❌ Erro inesperado: {e}")
+        log(f"❌ Erro inesperado: {e}")
+
+# Loop principal
+log("🟢 Iniciando monitoramento do arquivo Excel...")
+while True:
+    upload_excel()
+    log(f"⏳ Aguardando {INTERVALO // 60} minutos para o próximo envio...\n")
+    time.sleep(INTERVALO)
