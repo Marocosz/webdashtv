@@ -12,8 +12,8 @@ FILE_PATH = "dados.xlsx"
 BRANCH = "main"
 
 API_URL = f"https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/{FILE_PATH}"
-INTERVALO = 300  # 5 minutos
 ultimo_hash = None
+ultima_execucao = None  # Para garantir que só rode uma vez por dia
 
 def log(msg):
     hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -66,10 +66,15 @@ def upload_excel():
     except Exception as e:
         log(f"❌ Erro inesperado: {e}")
 
-log("🟢 Iniciando monitoramento do arquivo Excel...")
+log("🟢 Iniciando agendamento diário às 03:00...")
 while True:
-    log(f"⏳ iniciando while ------------------- ")
-    time.sleep(INTERVALO)
-    upload_excel()
-    log(f"⏳ Aguardando {INTERVALO // 60} minutos para o próximo envio...\n")
-    
+    agora = datetime.now()
+    if agora.hour == 3 and agora.minute == 0:
+        hoje = agora.date()
+        if ultima_execucao != hoje:
+            log("⏰ São 03:00! Iniciando upload...")
+            upload_excel()
+            ultima_execucao = hoje
+        else:
+            log("ℹ️ Upload já realizado hoje. Aguardando próximo dia...")
+    time.sleep(60)  # Checa uma vez por minuto
