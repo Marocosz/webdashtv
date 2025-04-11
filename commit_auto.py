@@ -8,6 +8,9 @@ GITHUB_REPO = "webdashtv"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 REPO_DIR = os.getcwd()
 
+print(f"📁 Diretório atual: {REPO_DIR}")
+print(GITHUB_TOKEN)
+
 # Verifica se o token está disponível
 if not GITHUB_TOKEN:
     print("❌ ERRO: GITHUB_TOKEN não está definido nas variáveis de ambiente.")
