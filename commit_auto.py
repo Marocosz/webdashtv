@@ -68,6 +68,8 @@ def upload_excel():
 
 log("🟢 Iniciando monitoramento do arquivo Excel...")
 while True:
+    log(f"⏳ iniciando while ------------------- ")
+    time.sleep(INTERVALO)
     upload_excel()
     log(f"⏳ Aguardando {INTERVALO // 60} minutos para o próximo envio...\n")
-    time.sleep(INTERVALO)
+    
