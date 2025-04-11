@@ -1,10 +1,9 @@
 #!/bin/bash
 
-# Dá permissões de execução (localmente antes de fazer push):
-# chmod +x start.sh
-
-# Inicia o script de commits automáticos em background
+echo "🟢 Iniciando commit_auto.py em background..."
 python commit_auto.py &
 
-# Inicia o servidor com Gunicorn
+echo "🚀 Iniciando servidor Gunicorn..."
 gunicorn main:app
+
+wait
