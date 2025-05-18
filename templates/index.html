@@ -99,7 +99,7 @@
 
                 <div class="button-row">
                     <button id="dashboard-button">Gerar Dashboard Mensal</button>
-                    <button type="button" onclick="baixarExcel()">Baixar Excel</button>
+                    <button id="download-excel" type="button">Baixar Excel</button>
                 </div>
             </div>
 
@@ -144,6 +144,20 @@
             <p id="mensagemErro" style="color: red; display: none;"></p>
         </div>
     </div>
+
+    <!-- Modal de download do excel -->
+    <div id="download-excel-modal" class="modal">
+        <div class="modal-content">
+            <div class="date-container">
+                <label for="dataEscolhida-excel" class="label">Data</label>
+                <input type="date" id="dataEscolhida-excel" name="dataEscolhida">
+            </div>
+
+            <button id="download-excel-mensal" type="button" >Baixar Excel Mensal</button>
+            <button id="download-excel-completo" type="button" onclick="baixarExcel()">Baixar Excel Completo</button>
+        </div>
+    </div>
+
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 

@@ -271,3 +271,60 @@ document.getElementById("dashboard-button").addEventListener("click", function(e
     console.log("Gerar Dashboard Mensal clicado!");
 });
 
+
+// Modal Excel Donwload
+document.addEventListener("DOMContentLoaded", function () {
+    const abrirModalBtn = document.getElementById("download-excel");
+    const modalExcel = document.getElementById("download-excel-modal");
+
+
+    // Exibe o modal e o overlay
+    abrirModalBtn.addEventListener("click", function () {
+        modalExcel.style.display = "block";
+        modalExcel.style.display = "flex";
+    });
+
+    // Fechar modal ao clicar fora dele
+    window.addEventListener("click", function (event) {
+        if (event.target === modalExcel) {
+            modalExcel.style.display = "none";
+        }
+    });
+});
+
+
+document.getElementById('download-excel-mensal').addEventListener('click', async () => {
+    const data = document.getElementById('dataEscolhida-excel').value;
+    if (!data) {
+        alert('Selecione uma data.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/baixar-excel-mensal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ data })
+        });
+
+        if (!response.ok) {
+            const erro = await response.json();
+            alert(erro.erro || "Erro ao gerar o Excel.");
+            return;
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'dados_mensal.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error("Erro:", error);
+        alert("Erro ao tentar baixar o arquivo.");
+    }
+});
+

@@ -6,6 +6,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from flask_cors import CORS
+import tempfile
 import subprocess
 import atexit
 
@@ -362,6 +363,44 @@ def delete_last_rows():
 
     except Exception as e:
         return jsonify({"message": f"Erro ao excluir linhas: {str(e)}"}), 500
+
+
+@app.route('/baixar-excel-mensal', methods=['POST'])
+def baixar_excel_mensal():
+    data_str = request.json.get('data')
+    if not data_str:
+        return jsonify({"erro": "Data não fornecida"}), 400
+
+    try:
+        data = datetime.strptime(data_str, '%Y-%m-%d')
+        df = pd.read_excel('dados.xlsx')
+        df['DataHora'] = pd.to_datetime(df['DataHora'])
+        df_filtrado = df[(df['DataHora'].dt.month == data.month) & (df['DataHora'].dt.year == data.year)]
+
+        if df_filtrado.empty:
+            return jsonify({"erro": "Nenhum dado encontrado para o mês selecionado."}), 404
+
+        # Criar arquivo temporário
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
+            temp_path = tmp.name
+        df_filtrado.to_excel(temp_path, index=False)
+
+        # Enviar arquivo e excluir depois
+        @after_this_request
+        def remover_arquivo(response):
+            try:
+                os.remove(temp_path)
+            except Exception as e:
+                print(f"Erro ao deletar arquivo temporário: {e}")
+            return response
+
+        return send_file(temp_path, as_attachment=True, download_name='dados_mensal.xlsx')
+
+    except Exception as e:
+        return jsonify({"erro": f"Erro no processamento: {str(e)}"}), 500
+
+# Para suportar after_this_request
+from flask import after_this_request
     
 
 # Inicia o servidor Flask no modo de depuração
