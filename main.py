@@ -207,7 +207,7 @@ def gerar_dashboard_pdf():
             fig, ax = plt.subplots(figsize=(6, 6))
             
             # Definir cores personalizadas para o gráfico
-            cores_pizza = ['#03C04A', '#F40000']  # verde para "Positivo" e Vermelho para "Negativo"
+            cores_pizza = ['#F40000', '#03C04A']  # verde para "Positivo" e Vermelho para "Negativo"
             
             # Criar o gráfico de pizza
             wedges, texts, autotexts = ax.pie(
