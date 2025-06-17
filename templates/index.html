@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -94,7 +94,7 @@
                             <option value="Noite">Noite</option>
                         </select>
                     </div>
-                    
+
                     <button onclick="gerarTextoMensagem()" class="gerar-texto-mensagem">Gerar Texto Mensagem</button>
                 </div>
 
@@ -139,7 +139,7 @@
                     <option value="10">Outubro</option>
                     <option value="11">Novembro</option>
                     <option value="12">Dezembro</option>
-                  </select>
+                </select>
             </div>
             <button id="dashboard-button" type="button" onclick="gerarDashboard()">Gerar Dashboard Mensal</button>
             <p id="mensagemErro" style="color: red; display: none;"></p>
@@ -154,7 +154,7 @@
                 <input type="date" id="dataEscolhida-excel" name="dataEscolhida">
             </div>
 
-            <button id="download-excel-mensal" type="button" >Baixar Excel Mensal</button>
+            <button id="download-excel-mensal" type="button">Baixar Excel Mensal</button>
             <button id="download-excel-completo" type="button" onclick="baixarExcel()">Baixar Excel Completo</button>
         </div>
     </div>
@@ -163,4 +163,5 @@
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 
 </body>
+
 </html>
