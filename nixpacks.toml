@@ -1,7 +1,10 @@
 # Ficheiro de configuração para o Railway (Nixpacks)
 
 [phases.setup]
-nixPkgs = ["pkgs.cairo", "pkgs.pango", "pkgs.gdk-pixbuf", "pkgs.pkg-config", "pkgs.libffi", "pkgs.liberation_ttf", "pkgs.fontconfig", "pkgs.gcc"]
+# Instala os pacotes de sistema necessários, incluindo o próprio Python
+# CORREÇÃO: Adicionado 'python311' para garantir que o interpretador Python esteja disponível
+nixPkgs = ["pkgs.python311", "pkgs.cairo", "pkgs.pango", "pkgs.gdk-pixbuf", "pkgs.pkg-config", "pkgs.libffi", "pkgs.liberation_ttf", "pkgs.fontconfig", "pkgs.gcc"]
 
 [start]
+# Comando ajustado para usar 'main.py' como ficheiro de entrada
 cmd = "gunicorn main:app --bind 0.0.0.0:$PORT --workers 4"
