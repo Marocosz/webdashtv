@@ -2,8 +2,8 @@
 
 [phases.setup]
 # Instala os pacotes de sistema necessários para o matplotlib funcionar
-# CORREÇÃO: Alterado 'fonts.liberation' para 'liberation_font'
-nixPkgs = ["cairo", "pango", "gdk-pixbuf", "pkg-config", "libffi", "liberation_font"]
+# CORREÇÃO PROATIVA: Adicionado 'fontconfig' para uma melhor gestão de fontes
+nixPkgs = ["pkgs.cairo", "pkgs.pango", "pkgs.gdk-pixbuf", "pkgs.pkg-config", "pkgs.libffi", "pkgs.liberation_ttf", "pkgs.fontconfig"]
 
 [start]
 # Comando para iniciar a sua aplicação em produção com Gunicorn
