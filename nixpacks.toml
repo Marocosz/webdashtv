@@ -1,10 +1,7 @@
 # Ficheiro de configuração para o Railway (Nixpacks)
 
 [phases.setup]
-# Instala os pacotes de sistema necessários para o matplotlib funcionar
-# CORREÇÃO PROATIVA: Adicionado 'fontconfig' para uma melhor gestão de fontes
-nixPkgs = ["pkgs.cairo", "pkgs.pango", "pkgs.gdk-pixbuf", "pkgs.pkg-config", "pkgs.libffi", "pkgs.liberation_ttf", "pkgs.fontconfig"]
+nixPkgs = ["pkgs.cairo", "pkgs.pango", "pkgs.gdk-pixbuf", "pkgs.pkg-config", "pkgs.libffi", "pkgs.liberation_ttf", "pkgs.fontconfig", "pkgs.gcc"]
 
 [start]
-# Comando para iniciar a sua aplicação em produção com Gunicorn
-cmd = "gunicorn app:app --bind 0.0.0.0:$PORT --workers 4"
+cmd = "gunicorn main:app --bind 0.0.0.0:$PORT --workers 4"
