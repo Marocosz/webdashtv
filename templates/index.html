@@ -1,22 +1,19 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Matérias</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.png') }}">
-
-
 </head>
 
 <body>
     <div class="container">
         <h1>Registro de Matérias</h1>
-        <form id="data-form" onsubmit="enviarDados(event);">
+        <form id="data-form">
             <label for="canal">Canal</label>
-            <select id="canal" name="canal" onchange="updateJornais();" required>
+            <select id="canal" name="canal" required>
                 <option value="">Selecione um canal</option>
                 <option value="Globo">Globo</option>
                 <option value="Record">Record</option>
@@ -51,7 +48,7 @@
                 <option value="Previcampos">Previcampos</option>
                 <option value="PROCON">PROCON</option>
                 <option value="Saúde">Saúde</option>
-                <option value="Saúde">Segurança</option>
+                <option value="Segurança">Segurança</option>
                 <option value="Social">Social</option>
                 <option value="Transporte">Transporte</option>
                 <option value="Trânsito">Trânsito</option>
@@ -59,7 +56,7 @@
             </select>
 
             <label for="datahora">Data e Hora</label>
-            <input type="datetime-local" name="datahora" required>
+            <input type="datetime-local" id="datahora" name="datahora" required>
 
             <label for="teor">Teor</label>
             <select id="teor" name="teor" required>
@@ -70,12 +67,12 @@
             </select>
 
             <label for="texto">Texto da Matéria</label>
-            <textarea name="texto" rows="3" required></textarea>
+            <textarea id="texto" name="texto" rows="3" required></textarea>
 
             <div class="button-container">
                 <div class="button-row">
                     <button id="add-data" type="submit">Adicionar Dados</button>
-                    <button id="delete-data" type="button">Excluir Dados</button>
+                    <button id="open-edit-modal-btn" type="button">Edição</button>
                 </div>
 
                 <div class="button-row">
@@ -83,8 +80,6 @@
                         <label for="dataEscolhida" class="label">Data</label>
                         <input type="date" id="dataEscolhida" name="dataEscolhida">
                     </div>
-
-                    <!-- Novo seletor para escolher o período do dia (Manhã, Tarde ou Noite) -->
                     <div class="date-container">
                         <label for="periodo" class="label">Período</label>
                         <select id="periodo" name="periodo">
@@ -94,34 +89,87 @@
                             <option value="Noite">Noite</option>
                         </select>
                     </div>
-
-                    <button onclick="gerarTextoMensagem()" class="gerar-texto-mensagem">Gerar Texto Mensagem</button>
+                    <button id="gerar-texto-btn" type="button" class="gerar-texto-mensagem">Gerar Texto Mensagem</button>
                 </div>
 
                 <div class="button-row">
-                    <button id="dashboard-button">Gerar Dashboard Mensal</button>
-                    <button id="download-excel" type="button">Baixar Excel</button>
+                    <button id="open-dashboard-modal-btn" type="button">Gerar Dashboard Mensal</button>
+                    <button id="open-download-excel-modal-btn" type="button">Baixar Excel</button>
                 </div>
             </div>
-
         </form>
     </div>
 
-    <!-- Modal para excluir linhas -->
-    <div id="delete-modal" class="modal">
-        <div class="modal-content">
-            <h2>Quantas linhas deseja excluir?</h2>
-            <label for="numLinhas"></label>
-            <div class="counter-container">
-                <button id="decrease">−</button>
-                <input type="number" id="numLinhas" value="1" min="1">
-                <button id="increase">+</button>
+    <!-- CORREÇÃO: Modal de Edição completo restaurado -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content large">
+            <span class="close-btn" id="close-edit-modal-btn">&times;</span>
+            <div id="recent-data-container">
+                <h2>Últimos 20 Registros</h2>
+                <div id="recent-data-list"><p>A carregar dados...</p></div>
             </div>
-            <button id="confirm-delete">Confirmar</button>
+            <div id="edit-form-container" style="display: none;">
+                <h2>Editar Registro</h2>
+                <form id="edit-form">
+                    <input type="hidden" id="edit-id" name="id">
+                    <label for="edit-canal">Canal</label>
+                    <select id="edit-canal" name="canal" required>
+                        <option value="Globo">Globo</option>
+                        <option value="Record">Record</option>
+                    </select>
+                    <label for="edit-jornal">Jornal</label>
+                    <select id="edit-jornal" name="jornal" required></select>
+                    <label for="edit-tema">Tema</label>
+                    <select id="edit-tema" name="tema" required>
+                         <option value="">Escolha um Tema</option>
+                        <option value="Administração">Administração</option>
+                        <option value="Agricultura">Agricultura</option>
+                        <option value="CCZ">CCZ</option>
+                        <option value="Codemca">Codemca</option>
+                        <option value="Cultura">Cultura</option>
+                        <option value="Defesa Civil">Defesa Civil</option>
+                        <option value="Economia">Economia</option>
+                        <option value="Educação">Educação</option>
+                        <option value="Esportes">Esportes</option>
+                        <option value="Fazenda">Fazenda</option>
+                        <option value="Fundecam">Fundecam</option>
+                        <option value="Governo">Governo</option>
+                        <option value="Iluminação">Iluminação</option>
+                        <option value="Infraestrutura">Infraestrutura</option>
+                        <option value="Limpeza Pública">Limpeza Pública</option>
+                        <option value="Meio Ambiente">Meio Ambiente</option>
+                        <option value="Obras">Obras</option>
+                        <option value="Ordem Pública">Ordem Pública</option>
+                        <option value="Previcampos">Previcampos</option>
+                        <option value="PROCON">PROCON</option>
+                        <option value="Saúde">Saúde</option>
+                        <option value="Segurança">Segurança</option>
+                        <option value="Social">Social</option>
+                        <option value="Transporte">Transporte</option>
+                        <option value="Trânsito">Trânsito</option>
+                        <option value="Turismo">Turismo</option>
+                    </select>
+                    <label for="edit-datahora">Data e Hora</label>
+                    <input type="datetime-local" id="edit-datahora" name="datahora" required>
+                    <label for="edit-teor">Teor</label>
+                    <select id="edit-teor" name="teor" required>
+                        <option value="Negativo">Negativo</option>
+                        <option value="Neutro">Neutro</option>
+                        <option value="Positivo">Positivo</option>
+                    </select>
+                    <label for="edit-texto">Texto da Matéria</label>
+                    <textarea id="edit-texto" name="texto" rows="4" required></textarea>
+                    <div class="edit-button-row">
+                        <button id="save-edit-btn" type="button">Salvar Alterações</button>
+                        <button id="delete-from-edit-btn" type="button" class="delete-btn">Excluir</button>
+                        <button id="back-to-list-btn" type="button" class="secondary-btn">Voltar</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
-    <!-- Modal para seleção de mês antes de gerar o dashboard -->
+    <!-- Modal para seleção de mês do dashboard -->
     <div id="dashboard-modal" class="modal">
         <div class="modal-content">
             <h2>Selecionar Mês</h2>
@@ -141,8 +189,7 @@
                     <option value="12">Dezembro</option>
                 </select>
             </div>
-            <button id="dashboard-button" type="button" onclick="gerarDashboard()">Gerar Dashboard Mensal</button>
-            <p id="mensagemErro" style="color: red; display: none;"></p>
+            <button id="confirm-dashboard-btn" type="button">Gerar Dashboard</button>
         </div>
     </div>
 
@@ -150,18 +197,14 @@
     <div id="download-excel-modal" class="modal">
         <div class="modal-content">
             <div class="date-container">
-                <label for="dataEscolhida-excel" class="label">Data</label>
-                <input type="date" id="dataEscolhida-excel" name="dataEscolhida">
+                <label for="mes-ano-excel-mensal" class="label">Mês e Ano para Download</label>
+                <input type="month" id="mes-ano-excel-mensal" name="mes_ano_excel">
             </div>
-
-            <button id="download-excel-mensal" type="button">Baixar Excel Mensal</button>
-            <button id="download-excel-completo" type="button" onclick="baixarExcel()">Baixar Excel Completo</button>
+            <button id="download-excel-mensal-btn" type="button">Baixar Excel Mensal</button>
+            <button id="download-excel-completo-btn" type="button">Baixar Excel Completo</button>
         </div>
     </div>
 
-
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-
 </body>
-
 </html>

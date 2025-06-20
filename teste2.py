@@ -1,24 +1,14 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 import psycopg2
 import pandas as pd
-from sqlalchemy import create_engine
 
-app = Flask(__name__)
+conn = psycopg2.connect(
+    dbname="meu_clipping_db",
+    user="postgres",
+    password="M8r03!hc",
+    host="localhost",
+    port="5432"
+)
 
-DATABASE_URL = "postgresql://postgres:hbBkNPCLxIRGROfLRSLPoHVvCeiqWdwN@metro.proxy.rlwy.net:42270/railway"
-
-# Criar a engine do SQLAlchemy
-engine = create_engine(DATABASE_URL)
-
-conn = psycopg2.connect(DATABASE_URL)
-cur = conn.cursor()
-
-
-query = "SELECT * FROM dados;"
-df = pd.read_sql(query, engine)
-
-
-
-print(df.head())
-engine.dispose()
+df = pd.read_sql("SELECT * FROM clipping;", conn)
+print(df)
+conn.close()

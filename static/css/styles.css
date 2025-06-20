@@ -13,10 +13,10 @@ body {
     text-align: center;
     padding: 20px;
     background-color: #1e1e1e; /* Cor de fundo personalizada */
-    background-image: url('../Wallpaper\ InTecMídia.jpg');
+    background-image: url('../Wallpaper InTecMídia.jpg');
     background-repeat: no-repeat;
     background-position: center center;
-    background-size: contain;
+    background-size: cover; /* Usar cover para preencher a tela */
 }
 
 .container {
@@ -63,85 +63,79 @@ textarea {
 
 .button-row {
     display: flex;
-    justify-content: space-between;
     gap: 10px;
-}
-
-.gerar-texto-mensagem {
-    padding: 12px;
-    font-size: 16px;
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.gerar-texto-mensagem:hover {
-    background-color: #0056b3;
+    align-items: stretch;
 }
 
 button {
     padding: 10px;
     font-size: 14px;
-    background-color: #007BFF;
     color: white;
     border: none;
     cursor: pointer;
     border-radius: 5px;
     width: 100%;
+    background-color: #007BFF; /* Cor padrão */
 }
+
+.button-row > button {
+    width: auto;
+}
+
 
 button:hover {
-    background-color: #0056b3;
+    opacity: 0.9;
 }
 
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Estilos para a primeira linha de botões */
+#add-data {
+    flex: 4; 
+    background-color: #28a745;
+}
+#open-edit-modal-btn {
+    flex: 1; 
+    background-color: #ffc107;
+    color: #212529;
+}
+
+
+/* Estilos para a segunda e terceira linha de botões */
 .date-container {
     display: flex;
     align-items: center;
-    width: 50%;
-    justify-content: center;
+    flex: 1; 
+    gap: 5px;
 }
 
-#dataEscolhida {
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-    width: 120px;
+.date-container label {
+    margin: 0;
+    white-space: nowrap; 
 }
 
-label[for="dataEscolhida"] {
-    font-size: 18px;
-    margin-right: 5px;
+.date-container input, .date-container select {
+    margin: 0;
+    flex-grow: 1; 
 }
 
-#add-data {
-    flex: 4;
-    background-color: #28a745;
+.gerar-texto-mensagem {
+    flex: 0 0 30%; 
 }
 
-#add-data:hover {
-    background-color: #218838;
+#open-dashboard-modal-btn, #open-download-excel-modal-btn {
+    flex: 1; /* Faz com que cada botão ocupe 50% do espaço */
 }
 
-#delete-data {
-    background-color: #dc3545;
-    flex: 1;
-}
 
-#delete-data:hover {
-    background-color: #c82333;
-}
-
-/* Estilização do modal */
+/* Estilização do modal de edição */
 .modal {
     display: none;
     position: fixed;
+    z-index: 1000;
     top: 0;
     left: 0;
     width: 100%;
@@ -155,91 +149,146 @@ label[for="dataEscolhida"] {
     background: white;
     padding: 20px;
     border-radius: 8px;
-    width: 300px;
+    width: 90%;
+    max-width: 500px; /* Tamanho padrão */
     text-align: center;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     position: relative;
 }
 
-.modal .close {
+.modal-content.large {
+    max-width: 700px; /* Tamanho maior para o modal de edição */
+}
+
+.modal .close-btn {
     position: absolute;
     right: 15px;
     top: 10px;
-    font-size: 20px;
+    font-size: 24px;
+    font-weight: bold;
     cursor: pointer;
+    color: #aaa;
+}
+.modal .close-btn:hover {
+    color: #333;
 }
 
-/* Contador de seleção */
-.counter-container {
+
+/* Estilos para a lista de edição */
+#recent-data-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 15px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+}
+
+.recent-data-item {
     display: flex;
-    justify-content: center;
+    flex-direction: column; 
+    align-items: flex-start; 
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    text-align: left;
+    gap: 5px; 
+}
+
+.recent-data-item:last-child {
+    border-bottom: none;
+}
+
+.recent-data-item:hover {
+    background-color: #f8f9fa;
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
     align-items: center;
-    margin: 10px 0;
 }
 
-.counter-container button {
-    background-color: #007bff;
+.item-header strong {
+    font-size: 1.1em;
+    color: #007BFF;
+}
+
+.item-header .item-teor {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: bold;
     color: white;
-    border: none;
-    font-size: 20px;
-    padding: 5px 15px;
-    cursor: pointer;
-    border-radius: 5px;
 }
 
-.counter-container button:hover {
-    background-color: #0056b3;
-}
+.teor-Positivo { background-color: #28a745; }
+.teor-Negativo { background-color: #dc3545; }
+.teor-Neutro { background-color: #6c757d; }
 
-.counter-container input {
-    width: 50px;
-    text-align: center;
-    font-size: 16px;
-    margin: 0 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-#confirm-delete {
-    padding: 10px;
-    font-size: 14px;
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
+.item-meta {
+    font-size: 0.9em;
+    color: #555;
     width: 100%;
 }
 
-#confirm-delete:hover {
+.item-meta span {
+    margin-right: 15px;
+}
+
+.item-text {
+    font-size: 0.95em;
+    color: #333;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-style: italic;
+    color: #666;
+}
+
+.item-footer {
+    font-size: 0.8em;
+    color: #777;
+    width: 100%;
+    text-align: right;
+}
+
+/* === CORREÇÃO: Layout do formulário de edição revertido para o padrão === */
+#edit-form {
+    text-align: left;
+}
+
+#edit-form label {
+    /* Herda o estilo de 'label' global */
+    margin-top: 15px; /* Adiciona um pouco mais de espaço */
+}
+
+#edit-form select,
+#edit-form input,
+#edit-form textarea {
+    /* Herda o estilo global destes elementos */
+    margin: 5px 0 0 0; /* Ajusta a margem para ficar mais próximo do rótulo */
+}
+/* ========================================================== */
+
+.edit-button-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.edit-button-row .delete-btn {
+    background-color: #dc3545;
+}
+.edit-button-row .delete-btn:hover {
     background-color: #c82333;
 }
 
-
-
-.date-container select {
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-    width: 120px;  /* Ajusta a largura do select para combinar com o input de data */
+.edit-button-row .secondary-btn {
+    background-color: #6c757d;
 }
-
-label[for="dataEscolhida-excel"] {
-    display: block;
-    text-align: center;
-    margin-bottom: 8px;
-}
-
-#download-excel-modal .date-container {
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    margin-bottom: 16px;
-}
-
-#download-excel-modal .date-container input {
-    width: 70%;
-    max-width: 200px;
+.edit-button-row .secondary-btn:hover {
+    background-color: #5a6268;
 }

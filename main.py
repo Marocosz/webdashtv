@@ -1,408 +1,317 @@
 # Importando as bibliotecas necessárias
-from flask import Flask, render_template, request, send_file, jsonify
-import pandas as pd
 import os
+import io
 from datetime import datetime
+from dotenv import load_dotenv
+from flask import Flask, render_template, request, send_file, jsonify
+from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-from flask_cors import CORS
-import tempfile
-import subprocess
-import atexit
 
-os.system("apt-get update && apt-get install -y fonts-liberation ttf-mscorefonts-installer")
-# Inicializando o aplicativo Flask
+# --- Carregando Variáveis de Ambiente ---
+load_dotenv()
+
+# --- Configuração do App Flask e do Banco de Dados ---
 app = Flask(__name__, template_folder='templates')
+CORS(app)
 
-CORS(app)  # Habilita CORS para evitar bloqueios
+database_uri = os.environ.get('DATABASE_URL', 'sqlite:///local_dev.db')
+if database_uri.startswith("postgres://"):
+    database_uri = database_uri.replace("postgres://", "postgresql://", 1)
 
-# Dicionário com os canais e seus respectivos jornais
+app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+# --- Dicionário de Jornais (Lógica Local) ---
 jornais = {
     "Globo": ["Inter TV Rural", "Bom Dia Inter", "Bom Dia Rio", "Bom Dia Brasil", "RJ TV 1", "RJ TV 2"],
     "Record": ["Balanço Geral", "RJ No Ar TV Record", "RJ Record"]
 }
 
+# --- Modelo de Dados (ORM) ---
+class Noticia(db.Model):
+    __tablename__ = 'noticia'
+    id = db.Column(db.Integer, primary_key=True)
+    canal = db.Column(db.String(100), nullable=False)
+    jornal = db.Column(db.String(100), nullable=False)
+    tema = db.Column(db.String(200), nullable=False)
+    data_hora = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    teor = db.Column(db.String(50), nullable=False)
+    texto = db.Column(db.Text, nullable=False)
 
-# Definindo os nomes dos arquivos que serão utilizados
-EXCEL_FILE = "dados.xlsx"
-PDF_FILE = "dashboard.pdf"
+    # Adiciona um método para serializar o objeto para JSON
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'canal': self.canal,
+            'jornal': self.jornal,
+            'tema': self.tema,
+            'data_hora': self.data_hora.strftime('%Y-%m-%dT%H:%M'),
+            'teor': self.teor,
+            'texto': self.texto
+        }
 
+    def __repr__(self):
+        return f'<Noticia {self.id}: {self.jornal} - {self.tema}>'
 
-print('--------------------------------------------------------------')
-print("Diretório atual:", os.getcwd())
+# --- Rotas da API ---
 
-# Caminho do repositório dentro do Render
-REPO_DIR = os.getcwd()
-        
-# Função que verifica se o arquivo Excel já existe, se não, cria um novo com a estrutura básica
-def verificar_arquivo():
-    # Se o arquivo não existir, cria um novo DataFrame e salva como Excel
-    if not os.path.exists(EXCEL_FILE):
-        df = pd.DataFrame(columns=["Canal", "Jornal", "Tema", "DataHora", "Teor", "Texto"])
-        df.to_excel(EXCEL_FILE, index=False)
-
-# Rota para a página inicial, onde o usuário pode preencher o formulário
 @app.route('/')
 def index():
-    
-    return render_template("index.html")  # Renderiza o arquivo HTML (Index.html) para o usuário
-
-# Rota para processar os dados enviados pelo formulário
-@app.route('/process', methods=['POST'])
-def process():
-    # Verifica se o arquivo Excel existe ou cria um novo
-    verificar_arquivo()
-    
-    # Coletando os dados enviados pelo formulário na requisição POST
-    canal = request.form['canal']
-    jornal = request.form['jornal']
-    tema = request.form['tema']
-    datahora = request.form['datahora']
-    teor = request.form['teor']
-    texto = request.form['texto']
-    
-    # Criando um novo DataFrame com os dados recebidos
-    novo_dado = pd.DataFrame([[canal, jornal, tema, datahora, teor, texto]],
-                              columns=["Canal", "Jornal", "Tema", "DataHora", "Teor", "Texto"])
-    
-    # Carregando o arquivo Excel existente e concatenando o novo dado
-    df = pd.read_excel(EXCEL_FILE)
-    df = pd.concat([df, novo_dado], ignore_index=True)  # Ignora o índice para adicionar como nova linha
-    df.to_excel(EXCEL_FILE, index=False)  # Salva o DataFrame atualizado no arquivo Excel
-    
-    # Retorna uma resposta JSON confirmando que os dados foram adicionados
-
-    return jsonify({"message": "Dados adicionados com sucesso!"})
-
-# Rota para fazer o download do arquivo Excel
-@app.route('/baixar_excel')
-def download_excel():
-    return send_file(EXCEL_FILE, as_attachment=True, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", download_name="dados.xlsx")
-
-
-@app.route('/gerar_texto_mensagem', methods=['POST'])
-def gerar_texto_mensagem():
-    # Obtém os dados enviados pelo frontend (data escolhida e período)
-    data_recebida = request.json.get('data')  # Obtém a data do corpo da requisição
-    periodo_recebido = request.json.get('periodo')  # Obtém o período do corpo da requisição
-
-    # Definindo os jornais por período
-    jornais_manha = ["Bom Dia Brasil", "Bom Dia Rio", "Bom Dia Inter", "Inter TV Rural", "RJ No Ar TV Record"]
-    jornais_tarde = ["RJ TV 1", "Balanço Geral"]
-    jornais_noite = ["RJ TV 2", "RJ Record"]
-
-    if not data_recebida:
-        return jsonify({"message": "Data não fornecida."})
-
-    if not periodo_recebido:
-        return jsonify({"message": "Período não fornecido."})
-
-    # Verifica se o período é válido
-    if periodo_recebido not in ['Manha', 'Tarde', 'Noite']:
-        return jsonify({"message": "Período inválido. Escolha entre 'Manhã', 'Tarde' ou 'Noite'."})
-
-    # Verifica se a data fornecida está no formato correto
-    try:
-        data_escolhida = datetime.strptime(data_recebida, '%Y-%m-%d').date()  # Formato: 'YYYY-MM-DD'
-    except ValueError:
-        return jsonify({"message": "Data inválida. Use o formato YYYY-MM-DD."})
-
-    # Chama a função para verificar a existência de arquivos necessários
-    verificar_arquivo()
-
-    # Lê os dados do arquivo Excel
-    df = pd.read_excel(EXCEL_FILE)
-
-    # Verifica se o DataFrame está vazio
-    if df.empty:
-        return jsonify({"message": "Nenhum dado disponível para gerar o texto."})
-
-    # Converte a coluna 'DataHora' para datetime (se ainda não estiver)
-    df['DataHora'] = pd.to_datetime(df['DataHora'])
-
-    # Filtra os dados para pegar apenas os registros da data escolhida
-    df_dia = df[df['DataHora'].dt.date == data_escolhida]
-
-    # Verifica se há dados para a data escolhida
-    if df_dia.empty:
-        return jsonify({"message": f"Nenhum dado para a data {data_escolhida.strftime('%d-%m-%Y')}."})
-
-    # Determina os jornais de acordo com o período escolhido
-    if periodo_recebido == 'Manha':
-        jornais_periodo = jornais_manha
-    elif periodo_recebido == 'Tarde':
-        jornais_periodo = jornais_tarde
-    else:  # periodo_recebido == 'Noite'
-        jornais_periodo = jornais_noite
-
-    # Geração do texto com o título modificando de acordo com o período
-    texto_mensagem = f"*CLIPPING | {data_escolhida.strftime('%d-%m-%y')} - {periodo_recebido}*\n\n\n\n"
-    
-    # Agrupa as notícias por jornal e filtra apenas os jornais do período
-    for jornal in jornais_periodo:
-        if jornal in df_dia['Jornal'].values:
-            texto_mensagem += f"*📺{jornal}*\n\n"
-            
-            df_jornal = df_dia[df_dia['Jornal'] == jornal]
-            for _, row in df_jornal.iterrows():
-                hora = row['DataHora'].strftime('%H:%M')
-                teor = row['Teor']
-                texto = row['Texto']
-                
-                # Define o ícone baseado no teor da notícia
-                icone_teor = "🔴" if teor.lower() == "negativo" else "⚪" if teor.lower() == "neutro" else "🟢"
-                
-                texto_mensagem += f"⏰*{hora}*\n"
-                texto_mensagem += f"*{icone_teor}{teor}*\n"
-                texto_mensagem += f"ℹ️{texto}\n\n"
-            
-            texto_mensagem += f"-----------------------------------\n\n"
-    
-    texto_mensagem += f"https://clipping.intecmidia.com.br/index.php/apps/files/files/596?dir=/1-RECORTES%20DO%20DIA\n"
-
-    # Retorna o texto gerado para o frontend
-    return jsonify({"texto": texto_mensagem})
-
-# Rota para gerar e baixar o dashboard em PDF
-@app.route('/gerar_dashboard_pdf', methods=['GET', 'POST'])
-def gerar_dashboard_pdf():
-    # Verifica se o arquivo Excel existe
-    verificar_arquivo()
-    
-    # Carregar os dados do arquivo Excel
-    df = pd.read_excel('dados.xlsx')
-
-    # Converter a coluna 'DataHora' para o tipo datetime
-    df['DataHora'] = pd.to_datetime(df['DataHora'])
-
-    # Filtrar os dados do mês desejado
-    num_mes = {1:'Janeiro', 2:'Fevereiro', 3:'Março', 4:'Abril', 5:'Maio', 
-            6:'Junho', 7:'Julho', 8:'Agosto', 9:'Setembro', 10:'Outubro', 11:'Novembro', 12:'Dezembro'}
-
-
-    mes_desejado = request.json.get('mes')  # Alterar para o mês desejado
-    mes_desejado = int(mes_desejado)
-    df_mes = df[df['DataHora'].dt.month == mes_desejado]
-    
-    print(df_mes)
-
-    # Verificar se há dados para o mês especificado
-    if df_mes.empty:
-        print(f"Não há dados para o mês {mes_desejado}.")
-        return jsonify({"erro": f"Não há dados disponíveis para o mês {mes_desejado}."}), 400
-    else:
-        # Criar um arquivo PDF para salvar os gráficos
-        with PdfPages('graficos.pdf') as pdf:
-            
-            # Criar o gráfico de pizza para os valores 'Teor'
-            df_teor_filtrado = df_mes[df_mes['Teor'].isin(['Negativo', 'Positivo'])]
-            contagem_teor_filtrado = df_teor_filtrado['Teor'].value_counts()
-            
-            # Função para formatar os rótulos com número absoluto e porcentagem
-            def func(pct, allvals):
-                absolute = int(pct / 100. * sum(allvals))
-                return f"{absolute}\n({pct:.1f}%)"
-            
-            # Criar a figura e o eixo para o gráfico de pizza
-            fig, ax = plt.subplots(figsize=(6, 6))
-            
-            # Definir cores personalizadas para o gráfico
-            cores_pizza = ['#F40000', '#03C04A']  # verde para "Positivo" e Vermelho para "Negativo"
-            
-            # Criar o gráfico de pizza
-            wedges, texts, autotexts = ax.pie(
-                contagem_teor_filtrado.values,
-                labels=contagem_teor_filtrado.index,
-                autopct=lambda pct: func(pct, contagem_teor_filtrado.values),
-                startangle=90,
-                colors=cores_pizza,
-                textprops={'fontsize': 12, 'fontweight': 'bold', 'color': 'black'},
-                wedgeprops={'edgecolor': 'white', 'linewidth': 2}  # Adicionando a linha branca entre as fatias
-            )
-                    
-            # Alterar a cor e a formatação dos textos dentro do gráfico de pizza
-            for autotext in autotexts:
-                autotext.set_color("white")
-                autotext.set_fontweight("bold")
-            
-            # Adicionar título formatado ao gráfico de pizza
-            ax.set_title(f"Distribuição dos valores 'Negativo' e 'Positivo' - {num_mes[mes_desejado]}",
-                        fontname="Arial", fontsize=16, fontweight='bold', pad=20)
-            
-            # Ajustar o layout e salvar o gráfico no PDF
-            plt.tight_layout()
-            pdf.savefig(fig, bbox_inches='tight')
-            plt.close(fig)
-            
-            # Função para criar gráficos de barras formatados
-            def criar_grafico_barra(dados, titulo, xlabel):
-                fig, ax = plt.subplots(figsize=(8, 6))
-                
-                # Criar gráfico de barras com cor personalizada
-                barras = dados.plot(kind='bar', color='#4169E1', ax=ax)
-                
-                # Adicionar rótulos de valores no topo das barras
-                for p in barras.patches:
-                    ax.text(p.get_x() + p.get_width() / 2, p.get_height() + 0.2,
-                            str(int(p.get_height())),
-                            ha='center', fontsize=12, fontweight='bold', fontname="Arial", color='black')
-                
-                # Adicionar título e rótulos formatados
-                ax.set_title(titulo, fontname="Arial", fontsize=16, fontweight='bold', pad=20)
-                ax.set_xlabel(xlabel, fontname="Arial", fontsize=12)
-                
-                ax.set_xlabel("")  # Remove o texto "Tema" ou "Jornal" abaixo do gráfico
-                
-                # Rotacionar os nomes das categorias para melhor visualização
-                ax.xaxis.set_tick_params(rotation=45)
-                
-                # Ajustar os rótulos das categorias no eixo X
-                ax.set_xticks(range(len(dados.index)))
-                ax.set_xticklabels(dados.index, ha='right', fontsize=10, fontname="Arial")
-                
-                # Remover linhas de grade e eixos desnecessários
-                ax.yaxis.set_visible(False)
-                ax.spines['top'].set_visible(False)
-                ax.spines['right'].set_visible(False)
-                ax.spines['left'].set_visible(False)
-                ax.spines['bottom'].set_visible(False)
-                
-                # Ajustar layout e salvar o gráfico no PDF
-                plt.tight_layout()
-                pdf.savefig(fig, bbox_inches='tight')
-                plt.close(fig)
-            
-            # Criar gráficos de barras para os temas e jornais mais mencionados
-            criar_grafico_barra(df_mes['Tema'].value_counts(),
-                                f"Temas mais mencionados - {num_mes[mes_desejado]}",
-                                "Tema")
-            
-            criar_grafico_barra(df_mes['Jornal'].value_counts(),
-                                f"Jornais que mais mencionaram - {num_mes[mes_desejado]}",
-                                "Jornal")
-            
-            # Criar uma figura com os três gráficos juntos
-            fig, axs = plt.subplots(1, 3, figsize=(18, 6))
-            
-            # Adicionar o gráfico de pizza ao primeiro eixo
-            wedges, texts, autotexts = axs[0].pie(
-                contagem_teor_filtrado.values, labels=contagem_teor_filtrado.index,
-                autopct=lambda pct: func(pct, contagem_teor_filtrado.values), startangle=90,
-                colors=cores_pizza, textprops={'fontsize': 10, 'fontweight': 'bold', 'color': 'black'},
-                wedgeprops={'edgecolor': 'white', 'linewidth': 2}
-            )
-            
-            for autotext in autotexts:
-                autotext.set_color("white")
-                autotext.set_fontweight("bold")
-            
-            axs[0].set_title("Teor", fontname="Arial", fontsize=12, fontweight='bold')
-            
-            # Criar gráficos de barras para "Temas" e "Jornais"
-            for ax, dados, titulo, xlabel in zip(
-                    axs[1:], [df_mes['Tema'].value_counts(), df_mes['Jornal'].value_counts()],
-                    ["Temas", "Jornais"], ["Tema", "Jornal"]):
-                barras = dados.plot(kind='bar', color='#4169E1', ax=ax)
-                
-                for p in barras.patches:
-                    ax.text(p.get_x() + p.get_width() / 2, p.get_height() + 0.2,
-                            str(int(p.get_height())),
-                            ha='center', fontsize=10, fontweight='bold', fontname="Arial", color='black')
-                
-                ax.set_title(titulo, fontname="Arial", fontsize=12, fontweight='bold')
-                ax.set_xlabel(xlabel, fontname="Arial", fontsize=10)
-                ax.xaxis.set_tick_params(rotation=45)
-                ax.set_xticklabels(dados.index, ha='right', fontsize=10, fontname="Arial")
-                ax.yaxis.set_visible(False)
-                ax.spines['top'].set_visible(False)
-                ax.spines['right'].set_visible(False)
-                ax.spines['left'].set_visible(False)
-                ax.spines['bottom'].set_visible(False)
-                ax.set_xlabel("")  # Remove o texto "Tema" ou "Jornal" abaixo do gráfico
-            
-            plt.tight_layout()
-            pdf.savefig(fig, bbox_inches='tight')
-            plt.close(fig)
-        
-        print("Os gráficos foram salvos em 'graficos.pdf'.")
-    
-    # Verificar se o arquivo foi gerado corretamente antes de retornar
-    if os.path.exists('graficos.pdf'):
-        return send_file('graficos.pdf', as_attachment=True, mimetype="application/pdf", download_name="relatorio.pdf")
-    else:
-        return "Erro ao gerar o arquivo PDF.", 500
+    return render_template("index.html")
 
 @app.route('/get_jornais', methods=['POST'])
 def get_jornais():
     canal = request.json.get("canal")
-    return jsonify(jornais.get(canal, []))
+    lista_jornais = jornais.get(canal, [])
+    return jsonify(lista_jornais)
 
-@app.route('/delete_last_rows', methods=['POST'])
-def delete_last_rows():
+@app.route('/process', methods=['POST'])
+def process():
     try:
+        data_hora_obj = datetime.strptime(request.form['datahora'], '%Y-%m-%dT%H:%M')
+        nova_noticia = Noticia(
+            canal=request.form['canal'],
+            jornal=request.form['jornal'],
+            tema=request.form['tema'],
+            data_hora=data_hora_obj,
+            teor=request.form['teor'],
+            texto=request.form['texto']
+        )
+        db.session.add(nova_noticia)
+        db.session.commit()
+        return jsonify({"message": "Dados adicionados com sucesso!"}), 201
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erro ao processar dados: {e}")
+        return jsonify({"message": "Erro ao salvar os dados."}), 500
+        
+# --- NOVAS ROTAS PARA EDIÇÃO E EXCLUSÃO ---
+
+@app.route('/get_recent_data', methods=['GET'])
+def get_recent_data():
+    """Busca os 20 registros mais recentes do banco de dados."""
+    try:
+        # Ordena por data_hora descendente e pega os 20 primeiros
+        registros = Noticia.query.order_by(Noticia.data_hora.desc()).limit(20).all()
+        return jsonify([r.to_dict() for r in registros])
+    except Exception as e:
+        print(f"Erro ao buscar dados recentes: {e}")
+        return jsonify({"error": "Não foi possível buscar os dados."}), 500
+
+@app.route('/update_data/<int:id>', methods=['PUT'])
+def update_data(id):
+    """Atualiza um registro existente no banco de dados."""
+    try:
+        noticia = Noticia.query.get_or_404(id)
         data = request.json
-        num_linhas = int(data.get("num_linhas", 0))
 
-        if not os.path.exists(EXCEL_FILE):
-            return jsonify({"message": "Arquivo Excel não encontrado."}), 404
+        # Atualiza os campos da notícia com os novos dados
+        noticia.canal = data.get('canal', noticia.canal)
+        noticia.jornal = data.get('jornal', noticia.jornal)
+        noticia.tema = data.get('tema', noticia.tema)
+        if 'data_hora' in data:
+            noticia.data_hora = datetime.strptime(data['data_hora'], '%Y-%m-%dT%H:%M')
+        noticia.teor = data.get('teor', noticia.teor)
+        noticia.texto = data.get('texto', noticia.texto)
 
-        # Carregar os dados
-        df = pd.read_excel(EXCEL_FILE)
+        db.session.commit()
+        return jsonify({"message": f"Registro {id} atualizado com sucesso!"})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erro ao atualizar registro {id}: {e}")
+        return jsonify({"error": "Não foi possível atualizar o registro."}), 500
 
-        # Verificar se há linhas suficientes para excluir
-        if num_linhas > len(df):
-            return jsonify({"message": f"Erro: O arquivo tem apenas {len(df)} linhas disponíveis."}), 400
+@app.route('/delete_data/<int:id>', methods=['DELETE'])
+def delete_data(id):
+    """Deleta um registro específico do banco de dados."""
+    try:
+        noticia = Noticia.query.get_or_404(id)
+        db.session.delete(noticia)
+        db.session.commit()
+        return jsonify({"message": f"Registro {id} deletado com sucesso!"})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erro ao deletar registro {id}: {e}")
+        return jsonify({"error": "Não foi possível deletar o registro."}), 500
 
-        # Excluir as últimas linhas
-        df = df.iloc[:-num_linhas]
 
-        # Salvar o novo arquivo
-        df.to_excel(EXCEL_FILE, index=False)
+# --- Rotas Antigas e de Relatórios (sem alterações) ---
 
-        return jsonify({"message": f"{num_linhas} linhas excluídas com sucesso!"})
+@app.route('/baixar_excel')
+def download_excel():
+    try:
+        df = pd.read_sql_table('noticia', db.engine)
+        output = io.BytesIO()
+        df.to_excel(output, index=False, sheet_name='Dados')
+        output.seek(0)
+        return send_file(output, as_attachment=True, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", download_name="dados_completos.xlsx")
+    except Exception as e:
+        print(f"Erro ao gerar Excel: {e}")
+        return jsonify({"message": "Erro ao gerar o arquivo Excel."}), 500
+
+@app.route('/gerar_texto_mensagem', methods=['POST'])
+def gerar_texto_mensagem():
+    data_recebida = request.json.get('data')
+    periodo_recebido = request.json.get('periodo')
+    if not data_recebida or not periodo_recebido:
+        return jsonify({"message": "Data ou período não fornecido."}), 400
+
+    try:
+        data_escolhida = datetime.strptime(data_recebida, '%Y-%m-%d').date()
+        registros = Noticia.query.filter(db.func.date(Noticia.data_hora) == data_escolhida).all()
+
+        if not registros:
+            return jsonify({"message": f"Nenhum dado para a data {data_escolhida.strftime('%d-%m-%Y')}."})
+
+        df_dia = pd.DataFrame([r.to_dict() for r in registros])
+
+        jornais_manha = ["Bom Dia Brasil", "Bom Dia Rio", "Bom Dia Inter", "Inter TV Rural", "RJ No Ar TV Record"]
+        jornais_tarde = ["RJ TV 1", "Balanço Geral"]
+        jornais_noite = ["RJ TV 2", "RJ Record"]
+        jornais_periodo = jornais_manha if periodo_recebido == 'Manha' else jornais_tarde if periodo_recebido == 'Tarde' else jornais_noite
+
+        texto_mensagem = f"*CLIPPING | {data_escolhida.strftime('%d-%m-%y')} - {periodo_recebido}*\n\n\n\n"
+        for jornal_nome in jornais_periodo:
+            df_jornal = df_dia[df_dia['jornal'] == jornal_nome]
+            if not df_jornal.empty:
+                texto_mensagem += f"*📺{jornal_nome}*\n\n"
+                for _, row in df_jornal.iterrows():
+                    icone_teor = "🔴" if row['teor'].lower() == "negativo" else "⚪" if row['teor'].lower() == "neutro" else "🟢"
+                    # Converte a string de data_hora de volta para objeto datetime para formatar
+                    hora_formatada = datetime.strptime(row['data_hora'], '%Y-%m-%dT%H:%M').strftime('%H:%M')
+                    texto_mensagem += f"⏰*{hora_formatada}*\n"
+                    texto_mensagem += f"*{icone_teor}{row['teor']}*\n"
+                    texto_mensagem += f"ℹ️{row['texto']}\n\n"
+                texto_mensagem += "-----------------------------------\n\n"
+        
+        texto_mensagem += "https://clipping.intecmidia.com.br/index.php/apps/files/files/596?dir=/1-RECORTES%20DO%20DIA\n"
+        return jsonify({"texto": texto_mensagem})
 
     except Exception as e:
-        return jsonify({"message": f"Erro ao excluir linhas: {str(e)}"}), 500
+        print(f"Erro ao gerar texto: {e}")
+        return jsonify({"message": "Ocorreu um erro ao gerar o texto."}), 500
 
+@app.route('/gerar_dashboard_pdf', methods=['POST'])
+def gerar_dashboard_pdf():
+    mes_desejado = request.json.get('mes')
+    if not mes_desejado:
+        return jsonify({"erro": "Mês não fornecido."}), 400
+
+    try:
+        mes_desejado = int(mes_desejado)
+        registros_mes = Noticia.query.filter(db.extract('month', Noticia.data_hora) == mes_desejado).all()
+
+        if not registros_mes:
+            return jsonify({"erro": f"Não há dados disponíveis para o mês {mes_desejado}."}), 404
+        
+        df_mes = pd.DataFrame([r.to_dict() for r in registros_mes])
+        num_mes = {1:'Janeiro', 2:'Fevereiro', 3:'Março', 4:'Abril', 5:'Maio', 6:'Junho', 7:'Julho', 8:'Agosto', 9:'Setembro', 10:'Outubro', 11:'Novembro', 12:'Dezembro'}
+
+        pdf_buffer = io.BytesIO()
+        with PdfPages(pdf_buffer) as pdf:
+            df_teor_filtrado = df_mes[df_mes['teor'].isin(['Negativo', 'Positivo'])]
+            if not df_teor_filtrado.empty:
+                contagem_teor_filtrado = df_teor_filtrado['teor'].value_counts()
+                
+                # CORREÇÃO: Mapeia as cores aos valores para garantir a ordem correta
+                color_map = {'Positivo': '#03C04A', 'Negativo': '#F40000'}
+                cores_pizza = [color_map.get(teor, '#cccccc') for teor in contagem_teor_filtrado.index]
+
+                def func(pct, allvals):
+                    absolute = int(pct / 100. * sum(allvals))
+                    return f"{absolute}\n({pct:.1f}%)"
+
+                fig, ax = plt.subplots(figsize=(6, 6))
+                wedges, texts, autotexts = ax.pie(
+                    contagem_teor_filtrado.values, labels=contagem_teor_filtrado.index,
+                    autopct=lambda pct: func(pct, contagem_teor_filtrado.values),
+                    startangle=90, colors=cores_pizza, # Usa a lista de cores corrigida
+                    textprops={'fontsize': 12, 'fontweight': 'bold', 'color': 'black'},
+                    wedgeprops={'edgecolor': 'white', 'linewidth': 2}
+                )
+                for autotext in autotexts:
+                    autotext.set_color("white")
+                ax.set_title(f"Distribuição de Teor - {num_mes[mes_desejado]}", fontsize=16, fontweight='bold', pad=20)
+                pdf.savefig(fig, bbox_inches='tight')
+                plt.close(fig)
+
+            def criar_grafico_barra(dados, titulo, ax):
+                if dados.empty: return
+                barras = dados.plot(kind='bar', color='#4169E1', ax=ax)
+                for p in barras.patches:
+                    ax.text(p.get_x() + p.get_width() / 2, p.get_height() + 0.2,
+                            str(int(p.get_height())),
+                            ha='center', fontsize=10, fontweight='bold', color='black')
+                ax.set_title(titulo, fontsize=12, fontweight='bold')
+                ax.set_xlabel("")
+                ax.tick_params(axis='x', rotation=45)
+                ax.set_xticklabels(dados.index, ha='right')
+                ax.yaxis.set_visible(False)
+                for spine in ['top', 'right', 'left', 'bottom']:
+                    ax.spines[spine].set_visible(False)
+
+            fig_tema, ax_tema = plt.subplots(figsize=(8, 6))
+            criar_grafico_barra(df_mes['tema'].value_counts(), f"Temas Mais Mencionados - {num_mes[mes_desejado]}", ax_tema)
+            plt.tight_layout()
+            pdf.savefig(fig_tema)
+            plt.close(fig_tema)
+
+            fig_jornal, ax_jornal = plt.subplots(figsize=(8, 6))
+            criar_grafico_barra(df_mes['jornal'].value_counts(), f"Jornais que Mais Mencionaram - {num_mes[mes_desejado]}", ax_jornal)
+            plt.tight_layout()
+            pdf.savefig(fig_jornal)
+            plt.close(fig_jornal)
+
+        pdf_buffer.seek(0)
+        return send_file(pdf_buffer, as_attachment=True, mimetype="application/pdf", download_name=f"relatorio_{num_mes[mes_desejado]}.pdf")
+
+    except Exception as e:
+        return jsonify({"erro": f"Ocorreu um erro interno ao gerar o PDF: {e}"}), 500
 
 @app.route('/baixar-excel-mensal', methods=['POST'])
 def baixar_excel_mensal():
-    data_str = request.json.get('data')
-    if not data_str:
-        return jsonify({"erro": "Data não fornecida"}), 400
+    # CORREÇÃO: Recebe o novo formato 'mes_ano'
+    mes_ano_str = request.json.get('mes_ano')
+    if not mes_ano_str:
+        return jsonify({"erro": "Mês e ano não fornecidos"}), 400
 
     try:
-        data = datetime.strptime(data_str, '%Y-%m-%d')
-        df = pd.read_excel('dados.xlsx')
-        df['DataHora'] = pd.to_datetime(df['DataHora'])
-        df_filtrado = df[(df['DataHora'].dt.month == data.month) & (df['DataHora'].dt.year == data.year)]
+        # Converte a string 'AAAA-MM' para um objeto datetime
+        data_selecionada = datetime.strptime(mes_ano_str, '%Y-%m')
+        
+        # Filtra os registros pelo mês e ano extraídos
+        registros = Noticia.query.filter(
+            db.extract('month', Noticia.data_hora) == data_selecionada.month,
+            db.extract('year', Noticia.data_hora) == data_selecionada.year
+        ).all()
 
-        if df_filtrado.empty:
+        if not registros:
             return jsonify({"erro": "Nenhum dado encontrado para o mês selecionado."}), 404
-
-        # Criar arquivo temporário
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
-            temp_path = tmp.name
-        df_filtrado.to_excel(temp_path, index=False)
-
-        # Enviar arquivo e excluir depois
-        @after_this_request
-        def remover_arquivo(response):
-            try:
-                os.remove(temp_path)
-            except Exception as e:
-                print(f"Erro ao deletar arquivo temporário: {e}")
-            return response
-
-        return send_file(temp_path, as_attachment=True, download_name='dados_mensal.xlsx')
-
+        
+        df_filtrado = pd.DataFrame([r.to_dict() for r in registros])
+        
+        output = io.BytesIO()
+        df_filtrado.to_excel(output, index=False, sheet_name=data_selecionada.strftime('%B %Y'))
+        output.seek(0)
+        
+        return send_file(
+            output, 
+            as_attachment=True, 
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            download_name=f'dados_{data_selecionada.strftime("%Y-%m")}.xlsx'
+        )
     except Exception as e:
+        print(f"Erro ao baixar excel mensal: {e}")
         return jsonify({"erro": f"Erro no processamento: {str(e)}"}), 500
 
-# Para suportar after_this_request
-from flask import after_this_request
-    
-
-# Inicia o servidor Flask no modo de depuração
+# Roda o servidor Flask
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    with app.app_context():
+        db.create_all()
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)), debug=True)
