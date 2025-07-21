@@ -1,10 +1,13 @@
 # Ficheiro de configuração para o Railway (Nixpacks)
 
 [phases.setup]
-# Instala os pacotes de sistema necessários, incluindo o próprio Python
-# CORREÇÃO: Adicionado 'python311' para garantir que o interpretador Python esteja disponível
+# Sua lista de pacotes já está correta
 nixPkgs = ["pkgs.python311", "pkgs.cairo", "pkgs.pango", "pkgs.gdk-pixbuf", "pkgs.pkg-config", "pkgs.libffi", "pkgs.liberation_ttf", "pkgs.fontconfig", "pkgs.gcc"]
 
+# ---> ADICIONE ESTA SEÇÃO <---
+[phases.install]
+# Força o uso de "python3" para criar o ambiente virtual e instalar as dependências
+cmd = "python3 -m venv --copies /opt/venv && . /opt/venv/bin/activate && pip install -r requirements.txt"
+
 [start]
-# Comando ajustado para usar 'main.py' como ficheiro de entrada
 cmd = "gunicorn main:app --bind 0.0.0.0:$PORT --workers 4"
